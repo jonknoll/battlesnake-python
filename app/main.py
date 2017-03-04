@@ -32,8 +32,7 @@ def build_grid(data):
             snakeType = OTHER_SNAKE
         
         grid.setList(snake['coords'], snakeType)
-        if(snakeType != ME_SNAKE):
-            grid.set([snake['coords'][0][0], snake['coords'][0][1]], SNAKE_HEAD)
+        grid.set([snake['coords'][0][0], snake['coords'][0][1]], SNAKE_HEAD)
         
     # fill with the dead snakes
     for snake in data['dead_snakes']:
@@ -62,6 +61,16 @@ def coordToDirection(currentCoord, proposedCoord):
     else:
         direction = 'down'
     return(direction)
+
+def safetyCheck(grid, coord):
+    whatIsHere = grid.get(coord)
+    if(whatIsHere == FOOD):
+        return(True)
+    elif(whatIsHere != 0):
+        # Danger!
+        return(False)
+    else:
+        return(True)
     
 
 
@@ -114,22 +123,22 @@ def move():
         for k,v in snake.iteritems():
             print("{}={}".format(k,v))
     print("\n\n")
-    grid.printGrid(0)
+    grid.printGrid('.')
     print("\nWe are at {}".format(ourCoord))
 
     # TODO: Do things with data
     #directions = ['up', 'down', 'left', 'right']
     directions = []
-    if(grid.get([ourCoord[0]-1,ourCoord[1]]) == 0):
+    if(safetyCheck(grid, [ourCoord[0]-1,ourCoord[1]]) == True):
         print("x-1,y = {}".format(grid.get([ourCoord[0]-1,ourCoord[1]])))
         directions.append('left')
-    if(grid.get([ourCoord[0]+1,ourCoord[1]]) == 0):
+    if(safetyCheck(grid, [ourCoord[0]+1,ourCoord[1]]) == True):
         print("x+1,y = {}".format(grid.get([ourCoord[0]+1,ourCoord[1]])))
         directions.append('right')
-    if(grid.get([ourCoord[0],ourCoord[1]+1]) == 0):
+    if(safetyCheck(grid, [ourCoord[0],ourCoord[1]+1]) == True):
         print("x,y+1 = {}".format(grid.get([ourCoord[0],ourCoord[1]+1])))
         directions.append('down')
-    if(grid.get([ourCoord[0],ourCoord[1]-1]) == 0):
+    if(safetyCheck(grid, [ourCoord[0],ourCoord[1]-1]) == True):
         print("x,y-1 = {}".format(grid.get([ourCoord[0],ourCoord[1]-1])))
         directions.append('up')
     

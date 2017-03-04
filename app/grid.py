@@ -32,13 +32,10 @@ class Grid(object):
         for y in range(self.height):
             #print("y={}".format(y))
             for x in range(self.width):
-                if(style==0):
-                    sys.stdout.write("{} ".format(self.get([x,y])))
+                if(self.get([x,y]) == 0):
+                    sys.stdout.write("{} ".format(style))
                 else:
-                    if(self.get([x,y]) == 0):
-                        sys.stdout.write("  ")
-                    else:
-                        sys.stdout.write("{} ".format(self.get([x,y])))  
+                    sys.stdout.write("{} ".format(self.get([x,y])))  
             sys.stdout.flush()
             print("")
     
