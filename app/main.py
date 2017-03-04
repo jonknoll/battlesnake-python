@@ -101,6 +101,7 @@ def start():
 
 @bottle.post('/move')
 def move():
+    move = ''
     data = bottle.request.json
     grid = build_grid(data)
     ourCoord = getOurHeadCoord()
@@ -129,9 +130,11 @@ def move():
     if(grid.get([ourCoord[0],ourCoord[1]-1]) == 0):
         directions.remove('down')
 
+    if len(directions) == 0:
+        move = random.choice(['up', 'down', 'left', 'right'])
     return {
-        'move': random.choice(directions),
-        'taunt': 'battlesnake-python!'
+        'move': move,
+        'taunt': 'Yolo!'
     }
 
 
