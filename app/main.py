@@ -136,7 +136,7 @@ def coordToDirection(currentCoord, proposedCoord):
 #looks at what is in the spot and determines if safe to move there
 def safetyCheck(grid, coord):
     whatIsHere = grid.get(coord)
-    if(whatIsHere in [OPEN_SPACE, FOOD, EAT_THIS_HEAD, DIAGONAL_HEAD, ORTHAGONAL_HEAD]):
+    if(whatIsHere in [OPEN_SPACE, FOOD, EAT_THIS_HEAD, DIAGONAL_HEAD]):
         return(True)
     else:
         return(False)
