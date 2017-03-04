@@ -106,6 +106,21 @@ def move():
     grid = build_grid(data)
     ourCoord = getOurHeadCoord()
     directions = ['up', 'down', 'left', 'right']
+    directions = []
+
+    #one space left of the snake head
+    if(grid.get([ourCoord[0]-1,ourCoord[1]]) == 0):
+        directions.append('left')
+    #one space right of the snake head
+    if(grid.get([ourCoord[0]+1,ourCoord[1]]) == 0):
+        directions.append('right')
+    #one space below the coordinate
+    if(grid.get([ourCoord[0],ourCoord[1]+1]) == 0):
+        directions.append('down')
+    #one space above the coordinate
+    if(grid.get([ourCoord[0],ourCoord[1]-1]) == 0):
+        directions.append('up')
+
 
     print("!SNAKE MOVE!")
     for k,v in data.iteritems():
@@ -134,6 +149,7 @@ def move():
         move = random.choice(['up', 'down', 'left', 'right'])
     return {
         'move': move,
+        'move': random.choice(directions),
         'taunt': 'Yolo!'
     }
 
