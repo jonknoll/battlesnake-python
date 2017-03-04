@@ -62,6 +62,7 @@ def coordToDirection(currentCoord, proposedCoord):
         direction = 'down'
     return(direction)
 
+#looks at what is in the spot and determines if same to move there
 def safetyCheck(grid, coord):
     whatIsHere = grid.get(coord)
     if(whatIsHere == FOOD):
@@ -142,6 +143,10 @@ def move():
         print("x,y-1 = {}".format(grid.get([ourCoord[0],ourCoord[1]-1])))
         directions.append('up')
     
+    # inspect surroundings for bad moves
+    # if nearest snake to nearest food go for the food
+    # if snake head nearer than food go toward sweet spots until hungry
+        # sweet spots are [0,2],[0,-2],[2,0],[-2,0],[1,1],[-1,1],[-1,-1],[1,-1]
     ourMove = random.choice(directions)
     print("Our move is = {}".format(ourMove))
     
