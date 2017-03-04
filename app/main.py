@@ -172,11 +172,11 @@ def move():
     ourTrajectory = getTrajectory(ourSnake)
 
     #This needs to be all snake heads
-    heads = [ourCoord]
+    #heads = [ourCoord]
     #for each snake head append to heads list
-    energy = data['health_points']
+    #energy = data['health_points']
 
-    desire = priority(energy, heads)
+    #desire = priority(energy, heads)
 
 
     print("!SNAKE MOVE!")
