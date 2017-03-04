@@ -20,9 +20,9 @@ def build_grid(data):
     height = data['height']
     width = data['width']
     myId = data['you']
-    
+
     grid = Grid(width, height)
-    
+
     # fill with the living snakes
     for snake in data['snakes']:
         id = snake['id']
@@ -30,10 +30,10 @@ def build_grid(data):
             snakeType = ME_SNAKE
         else:
             snakeType = OTHER_SNAKE
-        
+
         grid.setList(snake['coords'], snakeType)
         grid.set([snake['coords'][0][0], snake['coords'][0][1]], SNAKE_HEAD)
-        
+
     # fill with the dead snakes
     for snake in data['dead_snakes']:
         grid.setList(snake['coords'], DEAD_SNAKE)
@@ -72,7 +72,7 @@ def safetyCheck(grid, coord):
         return(False)
     else:
         return(True)
-    
+
 
 
 @bottle.route('/static/<path:path>')
@@ -83,13 +83,13 @@ def static(path):
 @bottle.post('/start')
 def start():
     data = bottle.request.json
-    
+
     print("\nSNAKE START!")
     for k,v in data.iteritems():
         print("{}={}".format(k,v))
     print("SNAKE INFO:")
 
-    
+
     game_id = data['game_id']
     board_width = data['width']
     board_height = data['height']
@@ -114,7 +114,7 @@ def move():
     data = bottle.request.json
     grid = build_grid(data)
     ourCoord = getOurHeadCoord(data)
-    
+
     print("!SNAKE MOVE!")
     for k,v in data.iteritems():
         print("{}={}".format(k,v))
@@ -142,15 +142,16 @@ def move():
     if(safetyCheck(grid, [ourCoord[0],ourCoord[1]-1]) == True):
         print("x,y-1 = {}".format(grid.get([ourCoord[0],ourCoord[1]-1])))
         directions.append('up')
-    
+
     # inspect surroundings for bad moves
     # if nearest snake to nearest food go for the food
     # if snake head nearer than food go toward sweet spots until hungry
         # sweet spots are [0,2],[0,-2],[2,0],[-2,0],[1,1],[-1,1],[-1,-1],[1,-1]
+
     ourMove = random.choice(directions)
     print("Our move is = {}".format(ourMove))
-    
-    
+
+
     return {
         'move': ourMove,
         'taunt': 'battlesnake-python!'
