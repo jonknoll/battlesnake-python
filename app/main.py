@@ -6,6 +6,7 @@ import grid
 
 # Values to put in grid, priorities TBD
 OPEN_SPACE = 0
+WALL = 2
 ME_SNAKE = 's'
 WALL = -1
 FOOD = 'F'
@@ -52,6 +53,7 @@ def getOurHeadCoord(data):
         if(id == myId):
             return(snake['coords'][0])
 
+#not used yet
 def coordToDirection(currentCoord, proposedCoord):
     if((proposedCoord[0] - currentCoord[0]) == 1):
         direction = 'right'
@@ -108,6 +110,7 @@ def move():
     directions = ['up', 'down', 'left', 'right']
     directions = []
 
+    # which is the snake head to move to
     #one space left of the snake head
     if(grid.get([ourCoord[0]-1,ourCoord[1]]) == 0):
         directions.append('left')
