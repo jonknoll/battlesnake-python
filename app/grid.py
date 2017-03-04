@@ -21,6 +21,47 @@ class Grid(object):
         for coord in coordsList:
             self.set(coord, val)
     
+    def getListOfType(self, typeList):
+        coordsList = []
+        for y in range(self.height):
+            for x in range(self.width):
+                thingAtCoord = self.get([x,y])
+                if(thingAtCoord in typeList):
+                    coordsList.append([x,y])
+        return(coordsList)
+    
+    def getOrthagonal(self, coord):
+        coordsList = []
+        right = [coord[0]+1, coord[1]]
+        left = [coord[0]-1, coord[1]]
+        down = [coord[0], coord[1]+1]
+        up = [coord[0], coord[1]-1]
+        if(self.get(right) != -1):
+            coordsList.append(right)
+        if(self.get(left) != -1):
+            coordsList.append(left)
+        if(self.get(down) != -1):
+            coordsList.append(down)
+        if(self.get(up) != -1):
+            coordsList.append(up)
+        return(coordsList)
+    
+    def getDiagonal(self, coord):
+        coordsList = []
+        topLeft = [coord[0]-1, coord[1]-1]
+        bottomLeft = [coord[0]-1, coord[1]+1]
+        topRight = [coord[0]+1, coord[1]-1]
+        bottomRight = [coord[0]+1, coord[1]+1]
+        if(self.get(topLeft) != -1):
+            coordsList.append(topLeft)
+        if(self.get(bottomLeft) != -1):
+            coordsList.append(bottomLeft)
+        if(self.get(topRight) != -1):
+            coordsList.append(topRight)
+        if(self.get(bottomRight) != -1):
+            coordsList.append(bottomRight)
+        return(coordsList)
+    
     def add(self, coord, val):
         origVal = self.get(coord)
         newVal = origVal + val
@@ -41,7 +82,7 @@ class Grid(object):
     
     def print2(self):
         print(self.grid)
-        
+    
     def countFreeBlocks(self, startingCoord, direction, freeTypes):
         """
         startingCoord = [x,y]

@@ -7,12 +7,12 @@ from grid import Grid
 # Values to put in grid, priorities TBD
 OPEN_SPACE = 0
 ME_SNAKE = '#'
+ME_HEAD = '*'
 WALL = -1
 FOOD = 'F'
 OTHER_SNAKE = 'S'
-BIG_SNAKE = 5
+OTHER_HEAD = '@'
 DEAD_SNAKE = 'D'
-SNAKE_HEAD = '@'
 
 
 
@@ -25,15 +25,26 @@ def build_grid(data):
 
     # fill with the living snakes
     for snake in data['snakes']:
-        id = snake['id']
-        if(id == myId):
+        theId = snake['id']
+        if(theId == myId):
             snakeType = ME_SNAKE
+            snakeHeadType = ME_HEAD
         else:
             snakeType = OTHER_SNAKE
-
-        grid.setList(snake['coords'], snakeType)
-        grid.set([snake['coords'][0][0], snake['coords'][0][1]], SNAKE_HEAD)
-
+            snakeHeadType = OTHER_HEAD
+        
+        # Snake body
+        snakeCoords = snake['coords']
+        grid.setList(snakeCoords, snakeType)
+        
+        head = getHeadCoord(snakeCoords)
+        grid.set(head, snakeHeadType)
+        
+        # put a safety around the other snake heads
+        if(snakeHeadType == OTHER_HEAD):
+            orthList = grid.getOrthagonal(head)
+            grid.setList(orthList, OTHER_HEAD)
+        
     # fill with the dead snakes
     #for snake in data['dead_snakes']:
     #    grid.setList(snake['coords'], DEAD_SNAKE)
