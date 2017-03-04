@@ -22,6 +22,8 @@ def closest(reference, pointList):
             closestPoint = point
     return closestPoint
 
+
+
 #priority based on distance
 if __name__=='__main__':
     #print(distance([1,3],[1,2]))
