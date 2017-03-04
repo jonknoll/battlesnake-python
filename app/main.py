@@ -15,9 +15,14 @@ FOOD = 'F'
 OTHER_SNAKE = 'S'
 OTHER_HEAD = '@'
 DEAD_SNAKE = 'D'
+ORTHAGONAL_HEAD = '+'
+DIAGONAL_HEAD = '-'
 
 #at what point
 HUNGRYAT = 50;
+
+# if none of these are options then don't change direction...gonna die
+defensiveMoveList = [OPEN_SPACE, DIAGONAL_HEAD, ORTHAGONAL_HEAD]
 
 
 def build_grid(data):
@@ -47,7 +52,9 @@ def build_grid(data):
         # put a safety around the other snake heads
         if(snakeHeadType == OTHER_HEAD):
             orthList = grid.getOrthagonal(head)
-            grid.setList(orthList, OTHER_HEAD)
+            grid.setList(orthList, ORTHAGONAL_HEAD)
+            diagList = grid.getDiagonal(head)
+            grid.setList(diagList, DIAGONAL_HEAD)
 
     # fill with the dead snakes
     #for snake in data['dead_snakes']:
