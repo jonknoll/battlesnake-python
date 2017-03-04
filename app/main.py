@@ -11,18 +11,8 @@ FOOD = 3
 OTHER_SNAKE = 4
 BIG_SNAKE = 5
 
-
-
-
 def build_grid(data):
     pass
-
-
-
-
-
-
-
 
 @bottle.route('/static/<path:path>')
 def static(path):
@@ -32,13 +22,13 @@ def static(path):
 @bottle.post('/start')
 def start():
     data = bottle.request.json
-    
+
     print("\nSNAKE START!")
     for k,v in data.iteritems():
         print("{}={}".format(k,v))
     print("SNAKE INFO:")
 
-    
+
     game_id = data['game_id']
     board_width = data['width']
     board_height = data['height']
@@ -61,7 +51,20 @@ def start():
 @bottle.post('/move')
 def move():
     data = bottle.request.json
-    
+
+    directions = ['up', 'down', 'left', 'right']
+
+    # move into unfilled spaces.
+        # if space orthagonally relative to head has no elements it is unfilled
+    # move into non danger zones
+        # danger spots relative to other snake heads
+        # [[-1,0],[1,0],[0,1],[0,-1]]
+    # if energy is less than half get food
+    # go to sweet spots
+        # the sweet spots relative to opponent snake head
+        # [[-2,0],[0,-2],[2,0],[0,2],[-1,-1],[-1,1],[1,-1],[1,1]]
+    # do not get into corners
+
     print("!SNAKE MOVE!")
     for k,v in data.iteritems():
         print("{}={}".format(k,v))
@@ -71,11 +74,9 @@ def move():
         for k,v in snake.iteritems():
             print("{}={}".format(k,v))
 
-    # TODO: Do things with data
-    directions = ['up', 'down', 'left', 'right']
-
+    choice = directions[2]
     return {
-        'move': random.choice(directions),
+        'move': choice,
         'taunt': 'battlesnake-python!'
     }
 
