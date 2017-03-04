@@ -102,10 +102,10 @@ def start():
     # TODO: Do things with data
 
     return {
-        'color': '#00FF00',
+        'color': '#800000',
         'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
         'head_url': head_url,
-        'name': 'Jon Snake'
+        'name': 'JerkSnake'
     }
 
 
@@ -144,10 +144,11 @@ def move():
         directions.append('up')
 
     # inspect surroundings for bad moves
+        #avoid locations with pointed corners
     # if nearest snake to nearest food go for the food
     # if snake head nearer than food go toward sweet spots until hungry
         # sweet spots are [0,2],[0,-2],[2,0],[-2,0],[1,1],[-1,1],[-1,-1],[1,-1]
-
+    #
     ourMove = random.choice(directions)
     print("Our move is = {}".format(ourMove))
 
