@@ -35,8 +35,8 @@ def build_grid(data):
         grid.set([snake['coords'][0][0], snake['coords'][0][1]], SNAKE_HEAD)
 
     # fill with the dead snakes
-    for snake in data['dead_snakes']:
-        grid.setList(snake['coords'], DEAD_SNAKE)
+    #for snake in data['dead_snakes']:
+    #    grid.setList(snake['coords'], DEAD_SNAKE)
 
     # fill with food
     for food in data['food']:
