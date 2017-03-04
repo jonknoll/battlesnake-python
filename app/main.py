@@ -3,18 +3,19 @@ import os
 import random
 from grid import Grid
 from gridhelper import *
+from snakestuff import *
 
 #Auto Deployed at http://jerksnake.herokuapp.com
 
 # Values to put in grid, priorities TBD
-OPEN_SPACE = 0
+OPEN_SPACE = '.'
 ME_SNAKE = '#'
 ME_HEAD = '*'
 WALL = -1
 FOOD = 'F'
-OTHER_SNAKE = 'S'
+OTHER_SNAKE = 'x'
 OTHER_HEAD = '@'
-DEAD_SNAKE = 'D'
+EAT_THIS_HEAD = 'X'
 ORTHAGONAL_HEAD = '+'
 DIAGONAL_HEAD = '-'
 
@@ -29,32 +30,45 @@ def build_grid(data):
     height = data['height']
     width = data['width']
     myId = data['you']
+    mySnakeObj = getMySnakeObj(data)
 
-    grid = Grid(width, height)
+    grid = Grid(width, height, OPEN_SPACE)
 
     # fill with the living snakes
     for snake in data['snakes']:
-        theId = snake['id']
-        if(theId == myId):
+        snakeId = snake['id']
+        snakeCoords = snake['coords']
+        
+        # Determine what kind of snake we're looking at
+        if(snakeId == myId):
             snakeType = ME_SNAKE
             snakeHeadType = ME_HEAD
         else:
             snakeType = OTHER_SNAKE
-            snakeHeadType = OTHER_HEAD
+            if(len(snakeCoords) >= len(mySnakeObj['coords'])):
+                snakeHeadType = OTHER_HEAD
+            else:
+                # snake is shorter than us, eat this head!
+                snakeHeadType = EAT_THIS_HEAD
 
         # Snake body
-        snakeCoords = snake['coords']
         grid.setList(snakeCoords, snakeType)
+        head = snakeCoords[0]
 
-        head = getHeadCoord(snakeCoords)
+        # Snake head
         grid.set(head, snakeHeadType)
 
         # put a safety around the other snake heads
         if(snakeHeadType == OTHER_HEAD):
             orthList = grid.getOrthagonal(head)
-            grid.setList(orthList, ORTHAGONAL_HEAD)
+            for coord in orthList:
+                if(grid.get(coord) == OPEN_SPACE):
+                    grid.set(coord, ORTHAGONAL_HEAD)
+            
             diagList = grid.getDiagonal(head)
-            grid.setList(diagList, DIAGONAL_HEAD)
+            for coord in diagList:
+                if(grid.get(coord) == OPEN_SPACE):
+                    grid.set(coord, DIAGONAL_HEAD)
 
     # fill with the dead snakes
     #for snake in data['dead_snakes']:
@@ -65,6 +79,13 @@ def build_grid(data):
         grid.setList(data['food'], FOOD)
 
     return(grid)
+
+
+
+def getDesiredDirection(trajectory):
+    # determine goal here!
+    return(trajectory)
+    
 
 def priority(energy, heads):
     otherSnakeCloser = False
@@ -82,20 +103,10 @@ def priority(energy, heads):
 
     priority = {}
     if energy <= HUNGRYAT:
-        priority.append('hunger':nearestFood(headLocation))
+        priority.append({'hunger':nearestFood(headLocation)})
     else:
         priority = 'jerk'
     return priority
-
-def getOurSnakeCoords(data):
-    myId = data['you']
-    for snake in data['snakes']:
-        id = snake['id']
-        if(id == myId):
-            return(snake['coords'])
-
-def getHeadCoord(snakeCoordsList):
-    return(snakeCoordsList[0])
 
 def getTrajectory(snakeCoordsList):
     xh = snakeCoordsList[0][0]
@@ -122,16 +133,13 @@ def coordToDirection(currentCoord, proposedCoord):
         direction = 'down'
     return(direction)
 
-#looks at what is in the spot and determines if same to move there
+#looks at what is in the spot and determines if safe to move there
 def safetyCheck(grid, coord):
     whatIsHere = grid.get(coord)
-    if(whatIsHere == FOOD):
+    if(whatIsHere in [OPEN_SPACE, FOOD, EAT_THIS_HEAD, DIAGONAL_HEAD, ORTHAGONAL_HEAD]):
         return(True)
-    elif(whatIsHere != 0):
-        # Danger!
-        return(False)
     else:
-        return(True)
+        return(False)
 
 
 
@@ -202,6 +210,9 @@ def move():
 
     # TODO: Do things with data
 
+    
+    direction = getDesiredDirection(ourTrajectory)
+    
     directions = []
     if(safetyCheck(grid, [head[0]-1,head[1]]) == True):
         print("x-1,y = {}".format(grid.get([head[0]-1,head[1]])))
