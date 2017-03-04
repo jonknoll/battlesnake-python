@@ -3,6 +3,7 @@ import os
 import random
 from grid import Grid
 
+#Auto Deployed at http://jerksnake.herokuapp.com
 
 # Values to put in grid, priorities TBD
 OPEN_SPACE = 0
