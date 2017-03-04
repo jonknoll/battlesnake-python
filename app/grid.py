@@ -41,6 +41,15 @@ class Grid(object):
     
     def print2(self):
         print(self.grid)
+        
+    def countFreeBlocks(self, startingCoord, direction, freeTypes):
+        """
+        startingCoord = [x,y]
+        direction =  'up', 'down', 'left' or 'right'
+        freeTypes = list of things that are considered free space
+        """
+        pass
+        
             
 if __name__=='__main__':
     testGrid = Grid(5,10)

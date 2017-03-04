@@ -44,13 +44,30 @@ def build_grid(data):
 
     return(grid)
 
-def getOurHeadCoord(data):
+def getOurSnakeCoords(data):
     myId = data['you']
     for snake in data['snakes']:
         id = snake['id']
         if(id == myId):
-            return(snake['coords'][0])
+            return(snake['coords'])
 
+def getHeadCoord(snakeCoordsList):
+    return(snakeCoordsList[0])
+
+def getTrajectory(snakeCoordsList):
+    xh = snakeCoordsList[0][0]
+    yh = snakeCoordsList[0][1]
+    x1 = snakeCoordsList[1][0]
+    y1 = snakeCoordsList[1][1]
+    if(xh > x1):
+        return('right')
+    elif(xh < x1):
+        return('left')
+    elif(yh > y1):
+        return('down')
+    else:
+        return('up')
+    
 def coordToDirection(currentCoord, proposedCoord):
     if((proposedCoord[0] - currentCoord[0]) == 1):
         direction = 'right'
@@ -72,6 +89,7 @@ def safetyCheck(grid, coord):
         return(False)
     else:
         return(True)
+
 
 
 
@@ -113,34 +131,38 @@ def start():
 def move():
     data = bottle.request.json
     grid = build_grid(data)
-    ourCoord = getOurHeadCoord(data)
+    ourSnake = getOurSnakeCoords(data)
+    head = getHeadCoord(ourSnake)
+    ourTrajectory = getTrajectory(ourSnake)
 
     print("!SNAKE MOVE!")
-    for k,v in data.iteritems():
-        print("{}={}".format(k,v))
-    snakedata = data['snakes']
-    for snake in snakedata:
-        print("SNAKE!")
-        for k,v in snake.iteritems():
-            print("{}={}".format(k,v))
-    print("\n\n")
+    print("ourSnake={}".format(ourSnake))
+#     for k,v in data.iteritems():
+#         print("{}={}".format(k,v))
+#     snakedata = data['snakes']
+#     for snake in snakedata:
+#         print("SNAKE!")
+#         for k,v in snake.iteritems():
+#             print("{}={}".format(k,v))
+#     print("\n\n")
     grid.printGrid('.')
-    print("\nWe are at {}".format(ourCoord))
+    print("\nWe are at {}".format(head))
+    print("our trajectory={}".format(ourTrajectory))
 
     # TODO: Do things with data
     #directions = ['up', 'down', 'left', 'right']
     directions = []
-    if(safetyCheck(grid, [ourCoord[0]-1,ourCoord[1]]) == True):
-        print("x-1,y = {}".format(grid.get([ourCoord[0]-1,ourCoord[1]])))
+    if(safetyCheck(grid, [head[0]-1,head[1]]) == True):
+        print("x-1,y = {}".format(grid.get([head[0]-1,head[1]])))
         directions.append('left')
-    if(safetyCheck(grid, [ourCoord[0]+1,ourCoord[1]]) == True):
-        print("x+1,y = {}".format(grid.get([ourCoord[0]+1,ourCoord[1]])))
+    if(safetyCheck(grid, [head[0]+1,head[1]]) == True):
+        print("x+1,y = {}".format(grid.get([head[0]+1,head[1]])))
         directions.append('right')
-    if(safetyCheck(grid, [ourCoord[0],ourCoord[1]+1]) == True):
-        print("x,y+1 = {}".format(grid.get([ourCoord[0],ourCoord[1]+1])))
+    if(safetyCheck(grid, [head[0],head[1]+1]) == True):
+        print("x,y+1 = {}".format(grid.get([head[0],head[1]+1])))
         directions.append('down')
-    if(safetyCheck(grid, [ourCoord[0],ourCoord[1]-1]) == True):
-        print("x,y-1 = {}".format(grid.get([ourCoord[0],ourCoord[1]-1])))
+    if(safetyCheck(grid, [head[0],head[1]-1]) == True):
+        print("x,y-1 = {}".format(grid.get([head[0],head[1]-1])))
         directions.append('up')
 
     # inspect surroundings for bad moves
@@ -149,7 +171,14 @@ def move():
     # if snake head nearer than food go toward sweet spots until hungry
         # sweet spots are [0,2],[0,-2],[2,0],[-2,0],[1,1],[-1,1],[-1,-1],[1,-1]
     #
-    ourMove = random.choice(directions)
+    
+    # see if it's ok to keep going the direction we are going
+    if(ourTrajectory in directions):
+        ourMove = ourTrajectory
+    elif len(directions) == 0:
+        ourMove = ourTrajectory
+    else:
+        ourMove = random.choice(directions)
     print("Our move is = {}".format(ourMove))
 
 
