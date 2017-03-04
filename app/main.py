@@ -1,18 +1,18 @@
 import bottle
 import os
 import random
-import grid
+from grid import Grid
 
 
 # Values to put in grid, priorities TBD
 OPEN_SPACE = 0
-ME_SNAKE = 's'
+ME_SNAKE = '#'
 WALL = -1
 FOOD = 'F'
 OTHER_SNAKE = 'S'
 BIG_SNAKE = 5
 DEAD_SNAKE = 'D'
-SNAKE_HEAD = 'H'
+SNAKE_HEAD = '@'
 
 
 
@@ -21,7 +21,7 @@ def build_grid(data):
     width = data['width']
     myId = data['you']
     
-    grid = grid.Grid(width, height)
+    grid = Grid(width, height)
     
     # fill with the living snakes
     for snake in data['snakes']:
@@ -103,7 +103,7 @@ def start():
 def move():
     data = bottle.request.json
     grid = build_grid(data)
-    ourCoord = getOurHeadCoord()
+    ourCoord = getOurHeadCoord(data)
     
     print("!SNAKE MOVE!")
     for k,v in data.iteritems():
@@ -114,23 +114,31 @@ def move():
         for k,v in snake.iteritems():
             print("{}={}".format(k,v))
     print("\n\n")
-    grid.printGrid()
+    grid.printGrid(0)
     print("\nWe are at {}".format(ourCoord))
 
     # TODO: Do things with data
     #directions = ['up', 'down', 'left', 'right']
     directions = []
     if(grid.get([ourCoord[0]-1,ourCoord[1]]) == 0):
+        print("x-1,y = {}".format(grid.get([ourCoord[0]-1,ourCoord[1]])))
         directions.append('left')
     if(grid.get([ourCoord[0]+1,ourCoord[1]]) == 0):
+        print("x+1,y = {}".format(grid.get([ourCoord[0]+1,ourCoord[1]])))
         directions.append('right')
     if(grid.get([ourCoord[0],ourCoord[1]+1]) == 0):
-        directions.append('up')
-    if(grid.get([ourCoord[0],ourCoord[1]-1]) == 0):
+        print("x,y+1 = {}".format(grid.get([ourCoord[0],ourCoord[1]+1])))
         directions.append('down')
+    if(grid.get([ourCoord[0],ourCoord[1]-1]) == 0):
+        print("x,y-1 = {}".format(grid.get([ourCoord[0],ourCoord[1]-1])))
+        directions.append('up')
+    
+    ourMove = random.choice(directions)
+    print("Our move is = {}".format(ourMove))
+    
     
     return {
-        'move': random.choice(directions),
+        'move': ourMove,
         'taunt': 'battlesnake-python!'
     }
 

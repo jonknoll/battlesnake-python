@@ -11,6 +11,10 @@ class Grid(object):
         self.grid[coord[1]][coord[0]] = val
     
     def get(self, coord):
+        if((coord[0] >= self.width) or (coord[0] < 0)):
+            return(-1)
+        elif((coord[1] >= self.height) or (coord[1] < 0)):
+            return(-1)
         return self.grid[coord[1]][coord[0]]
     
     def setList(self, coordsList, val):
@@ -23,12 +27,18 @@ class Grid(object):
         self.set(coord, newVal)
         return(newVal)
     
-    def printGrid(self):
+    def printGrid(self, style=0):
         print("GRID: ({} x {})".format(self.width, self.height))
         for y in range(self.height):
             #print("y={}".format(y))
             for x in range(self.width):
-                sys.stdout.write("{}, ".format(self.get([x,y])))
+                if(style==0):
+                    sys.stdout.write("{} ".format(self.get([x,y])))
+                else:
+                    if(self.get([x,y]) == 0):
+                        sys.stdout.write("  ")
+                    else:
+                        sys.stdout.write("{} ".format(self.get([x,y])))  
             sys.stdout.flush()
             print("")
     
