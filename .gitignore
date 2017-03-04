@@ -2,3 +2,5 @@
 *.pyc
 battlesnake
 .idea
+.project
+.pydevproject
