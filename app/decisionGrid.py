@@ -43,22 +43,22 @@ def howDoIgetThere(me, target):
     #randomer
     return directions
 
-def desiredTrajectory(me, heads, food, energy):
+def desiredTrajectory(myHead, heads, food, energy):
     #am i hungry? If so go to food.
     if energy <= HUNGRYAT:
         #-- Get food code priority -- food
         #get list of food points
         #generate return direction to go toward food
-        return howDoIgetThere(me, closest(me, food))
+        return howDoIgetThere(me, closest(myHead, food))
     else:
         #--Find kill point priority -- kill!
-        if distance(me, closest(me,heads)) <= 3:
+        #if distance(me, closest(me,heads)) <= 3:
             #this is close quarters rules. Be sure to be a jerk
             #TO DO: Handle this
-            print('close quarters combat')
+            #print('close quarters combat')
         #get list of snake heads
         #get closest head
-        return howDoIgetThere(me, closest(me,heads))
+        return howDoIgetThere(me, closest(myHead,heads))
 
 
     """
