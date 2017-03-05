@@ -43,10 +43,16 @@ def howDoIgetThere(me, target):
     #randomer
     return directions
 
+
 def desiredTrajectory(mySnake, enemySnakes, food, energy):
+    """
+    This is the goal algorithm. It looks at us vs enemy snakes, food and
+    energy and determines a priority. The general priority is:
+    - get in the face of snakes that are smaller than us
+    - if the food is <= HUNGRYAT then stop bugging snakes and look for food
+    """
     myHead = mySnake[0]
     enemySnakeHeads = []
-    smallerEnemy = False
     for enemySnake in enemySnakes:
         #if the length of the enemy snake is less then good
         if len(enemySnake) < len(mySnake):
@@ -59,7 +65,7 @@ def desiredTrajectory(mySnake, enemySnakes, food, energy):
         #generate return direction to go toward food
         #you are the food! GET FOOD
         return howDoIgetThere(myHead, closest(myHead, food))
-    elif smallerEnemy != True:
+    elif len(enemySnakeHeads) == 0:
         return howDoIgetThere(myHead, closest(myHead, food))
     else:
         #--Find kill point priority -- kill!

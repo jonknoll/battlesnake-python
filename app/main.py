@@ -12,14 +12,16 @@ from decisionGrid import *
 # Values to put in grid, priorities TBD
 OPEN_SPACE = '.'
 ME_SNAKE = '#'
-ME_HEAD = '*'
+ME_HEAD = '@'
 WALL = -1
 FOOD = 'F'
-OTHER_SNAKE = 'x'
-OTHER_HEAD = '@'
-EAT_THIS_HEAD = 'X'
+OTHER_SNAKE = 'o'
+OTHER_HEAD = 'H'
+EAT_THIS_HEAD = '$'
 ORTHAGONAL_HEAD = '+'
 DIAGONAL_HEAD = '-'
+CLOSE_TO_WALL = '?'
+TAIL = 'T'
 
 TARGET = 'T'
 
@@ -27,60 +29,109 @@ TARGET = 'T'
 HUNGRYAT = 50;
 
 # if none of these are options then don't change direction...gonna die
-defensiveMovePriorityList = [WALL, OTHER_SNAKE, OTHER_HEAD, ORTHAGONAL_HEAD, DIAGONAL_HEAD, EAT_THIS_HEAD, OPEN_SPACE, FOOD] #, TARGET]
+defensiveMovePriorityList = [WALL, ME_SNAKE, OTHER_SNAKE, OTHER_HEAD, ORTHAGONAL_HEAD, DIAGONAL_HEAD, EAT_THIS_HEAD, OPEN_SPACE, FOOD] #, TARGET]
 
 
 def build_grid(data):
+    """
+    Fill the grid in layers from the most harmless thing to the most
+    dangerous thing. Upper layers can overwrite lower layers. Numbers indicate
+    same layer.
+    
+    0-CLOSE_TO_WALL
+    0.5-FOOD
+    1-DIAGONAL_HEAD -- not bothering with this now
+    1-ORTHAGONAL_HEAD
+    2-ME_HEAD
+    2-EAT_THIS_HEAD
+    2-OTHER_HEAD
+    3-OTHER_SNAKE
+    3-ME_SNAKE
+    """
     height = data['height']
     width = data['width']
     myId = data['you']
     mySnakeObj = getMySnakeObj(data)
 
     grid = Grid(width, height, OPEN_SPACE)
-
-    # fill with the living snakes
-    for snake in data['snakes']:
-        snakeId = snake['id']
-        snakeCoords = snake['coords']
+    
+    # 0-CLOSE_TO_WALL
+    for x in range(width):
+        grid.set([x,0], CLOSE_TO_WALL)
+        grid.set([x,height-1], CLOSE_TO_WALL)
+    for y in range(height):
+        grid.set([0,y], CLOSE_TO_WALL)
+        grid.set([width-1,y], CLOSE_TO_WALL)
         
-        # Determine what kind of snake we're looking at
-        if(snakeId == myId):
-            snakeType = ME_SNAKE
+    # 0.5-FOOD
+    grid.setList(data['food'], FOOD)
+        
+
+    # 1-ORTHAGONAL_HEAD positions
+    for snake in data['snakes']:
+        snakeCoords = snake['coords']
+        head = snakeCoords[0]
+        orthList = grid.getOrthagonal(head)
+        
+        # Determine the kind of snake we're looking at
+        if(snake['id'] == myId):
             snakeHeadType = ME_HEAD
         else:
-            snakeType = OTHER_SNAKE
             if(len(snakeCoords) >= len(mySnakeObj['coords'])):
                 snakeHeadType = OTHER_HEAD
             else:
                 # snake is shorter than us, eat this head!
                 snakeHeadType = EAT_THIS_HEAD
-
-        # Snake body
-        grid.setList(snakeCoords, snakeType)
-        head = snakeCoords[0]
-
-        # Snake head
-        grid.set(head, snakeHeadType)
-
-        # put a safety around the other snake heads
+        
+        # put a safety around the other snake heads in the positions the
+        # snake may travel to next (orthagonal positions)
         if(snakeHeadType == OTHER_HEAD):
-            orthList = grid.getOrthagonal(head)
+            grid.setList(orthList, ORTHAGONAL_HEAD)
+        elif(snakeHeadType == EAT_THIS_HEAD):
+            # Speacial case. This is the head of a snake that is smaller than
+            # us. Therefore we are not afraid to hit it head on. Hitting its
+            # head from the side can cause death because it might turn away,
+            # but head on is safe, so only populate a safety in the blocks
+            # that are not directly in front of the snake's mouth.
+            traj = getTrajectory(snake['coords'])
+            trajCoord = dirToCoord(head, traj)
             for coord in orthList:
-                if(grid.get(coord) == OPEN_SPACE):
+                if(coord != trajCoord):
                     grid.set(coord, ORTHAGONAL_HEAD)
-            
-            diagList = grid.getDiagonal(head)
-            for coord in diagList:
-                if(grid.get(coord) == OPEN_SPACE):
-                    grid.set(coord, DIAGONAL_HEAD)
-
-    # fill with the dead snakes
-    #for snake in data['dead_snakes']:
-    #    grid.setList(snake['coords'], DEAD_SNAKE)
-
-    # fill with food
-    for food in data['food']:
-        grid.setList(data['food'], FOOD)
+    
+    
+    # 2-ME_HEAD, EAT_THIS_HEAD, OTHER_HEAD
+    for snake in data['snakes']:
+        snakeCoords = snake['coords']
+        head = snakeCoords[0]
+        
+        # Determine the kind of snake we're looking at
+        if(snake['id'] == myId):
+            snakeHeadType = ME_HEAD
+        else:
+            if(len(snakeCoords) >= len(mySnakeObj['coords'])):
+                snakeHeadType = OTHER_HEAD
+            else:
+                # snake is shorter than us, eat this head!
+                snakeHeadType = EAT_THIS_HEAD
+        grid.set(head, snakeHeadType)
+    
+    
+    # Snake bodies (only put down the coordinates after the head)
+    for snake in data['snakes']:
+        snakeCoords = snake['coords']
+        if(snake['id'] == myId):
+            # remove head (already populated) AND remove tail because
+            # moving into the space our tail occupies is OK
+            newSnakeCoords = snakeCoords[1:]
+            newSnakeCoords = newSnakeCoords[:-1]
+            grid.setList(newSnakeCoords, ME_SNAKE)
+        else:
+            newSnakeCoords = snakeCoords[1:]
+            grid.setList(newSnakeCoords, OTHER_SNAKE)
+            # mark the tail as a potential move
+            grid.set(snakeCoords[-1], TAIL)
+        
 
     return(grid)
 
@@ -112,30 +163,17 @@ def priority(energy, heads):
         priority = 'jerk'
     return priority
 
-def getTrajectory(snakeCoordsList):
-    xh = snakeCoordsList[0][0]
-    yh = snakeCoordsList[0][1]
-    x1 = snakeCoordsList[1][0]
-    y1 = snakeCoordsList[1][1]
-    if(xh > x1):
-        return('right')
-    elif(xh < x1):
-        return('left')
-    elif(yh > y1):
-        return('down')
-    else:
-        return('up')
-
 #looks at what is in the spot and determines if safe to move there
 def safetyCheck(grid, coord):
     whatIsHere = grid.get(coord)
     if(whatIsHere in [OPEN_SPACE, FOOD, DIAGONAL_HEAD]):
         return('OK')
-    elif(whatIsHere in [ORTHAGONAL_HEAD, EAT_THIS_HEAD]):
+    elif(whatIsHere in [ORTHAGONAL_HEAD, CLOSE_TO_WALL]):
+        return('CAUTION')
+    elif(whatIsHere in [EAT_THIS_HEAD, TAIL]):
         return('DANGER')
     else:
         return('NO')
-
 
 
 
@@ -223,23 +261,35 @@ def move():
     print("directions to try are = {}".format(directionsToTry))
     # Check this against our direction algorithm and eliminate invaid
     # directions
+    ourMove = None
+    ourMoveSafety = None
     for direction in directionsToTry:
         coord = dirToCoord(head, direction)
         result = safetyCheck(grid, coord)
         if(result == 'OK'):
-            ourMove = direction
             print("direction {} status {}".format(direction, result))
-            # Good to go, just leave
+            ourMove = direction
+            ourMoveSafety = result
+            # good to go, leave now
             break;
-        elif(result == 'NO'):
+        elif(result == 'CAUTION'):
             print("direction {} status {}".format(direction, result))
-            continue
-        else: # Danger, use only if we have to
+            if(ourMoveSafety != 'CAUTION'):
+                ourMove = direction
+                ourMoveSafety = result
+        elif(result == 'DANGER'):
             print("direction {} status {}".format(direction, result))
-            ourMove = direction
+            if(ourMoveSafety == None):
+                ourMove = direction
+                ourMoveSafety = result
+        else:   # NO
+            print("direction {} status {}".format(direction, result))
+            # don't even bother suggesting it as a move
+            continue            
     
     
     if(ourMove == None):
+        print("Can't go anywhere! Maintain current trajectory")
         ourMove = ourTrajectory
     
     
