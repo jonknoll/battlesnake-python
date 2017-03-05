@@ -1,5 +1,6 @@
 from gridhelper import *
 import random
+import gridhelper
 
 """
 EAT_THIS_HEAD <- this is a vulnerable head go into danger zones
@@ -40,20 +41,20 @@ def howDoIgetThere(me, target):
         directions.append('up')
 
     #randomer
-    return random.choice(directions)
+    return directions
 
-def offensiveTarget(me, heads, food, energy):
-    priority = ''
-
+def desiredTrajectory(me, heads, food, energy):
     #am i hungry? If so go to food.
     if energy <= HUNGRYAT:
-        #Get food code priority food
-        #generate direction to go toward food
-        print("nothing here")
+        #-- Get food code priority -- food
+        #get list of food points
+        #generate return direction to go toward food
+        return howDoIgetThere(me, closest(me, food))
     else:
-        #Find kill point priority kill
+        #--Find kill point priority -- kill!
         #get list of snake heads
-        #find nearest snake head and move towards it
+        #get closest head
+        #generate return direction to get there
         print("nothing here")
 
 
@@ -75,10 +76,10 @@ def offensiveTarget(me, heads, food, energy):
 
     return 'Nothing yet'
 
+#def desiredTrajectory(me, heads, food, energy):
 
 if __name__=='__main__':
-    print(offensiveTarget)
-    print(howDoIgetThere([2,2],[4,4]))
+    print(desiredTrajectory([2,1], [[7,8],[3,4]], [[3,1]], 100))
 
 #getOurSnakeCoords(data)
 #getOtherSnakeCoords(data)
