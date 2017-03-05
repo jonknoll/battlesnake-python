@@ -19,11 +19,13 @@ EAT_THIS_HEAD = 'X'
 ORTHAGONAL_HEAD = '+'
 DIAGONAL_HEAD = '-'
 
+TARGET = 'T'
+
 #at what point
 HUNGRYAT = 50;
 
 # if none of these are options then don't change direction...gonna die
-defensiveMoveList = [OPEN_SPACE, DIAGONAL_HEAD, ORTHAGONAL_HEAD]
+defensiveMovePriorityList = [WALL, OTHER_SNAKE, OTHER_HEAD, ORTHAGONAL_HEAD, DIAGONAL_HEAD, EAT_THIS_HEAD, OPEN_SPACE, FOOD] #, TARGET]
 
 
 def build_grid(data):
@@ -210,8 +212,7 @@ def move():
 
     # TODO: Do things with data
 
-    
-    direction = getDesiredDirection(ourTrajectory)
+
     
     directions = []
     if(safetyCheck(grid, [head[0]-1,head[1]]) == True):
