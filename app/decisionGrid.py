@@ -54,7 +54,7 @@ def desiredTrajectory(me, heads, food, energy):
         #--Find kill point priority -- kill!
         if distance(me, closest(me,heads)) <= 3:
             #this is close quarters rules. Be sure to be a jerk
-            #TODO: Handle this
+            #TO DO: Handle this
             print('close quarters combat')
         #get list of snake heads
         #get closest head
