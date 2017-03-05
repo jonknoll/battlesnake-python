@@ -129,9 +129,9 @@ def getTrajectory(snakeCoordsList):
 #looks at what is in the spot and determines if safe to move there
 def safetyCheck(grid, coord):
     whatIsHere = grid.get(coord)
-    if(whatIsHere in [OPEN_SPACE, FOOD, EAT_THIS_HEAD, DIAGONAL_HEAD]):
+    if(whatIsHere in [OPEN_SPACE, FOOD, DIAGONAL_HEAD]):
         return('OK')
-    elif(whatIsHere in [ORTHAGONAL_HEAD]):
+    elif(whatIsHere in [ORTHAGONAL_HEAD, EAT_THIS_HEAD]):
         return('DANGER')
     else:
         return('NO')
@@ -239,7 +239,8 @@ def move():
             ourMove = direction
     
     
-    
+    if(ourMove == None):
+        ourMove = ourTrajectory
     
     
 #     directions = []
