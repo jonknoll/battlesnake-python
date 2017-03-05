@@ -43,27 +43,35 @@ def howDoIgetThere(me, target):
     #randomer
     return directions
 
-def desiredTrajectory(myHead, heads, food, energy):
+def desiredTrajectory(mySnake, enemySnakes, food, energy):
+    myHead = mySnake[0]
+    enemySnakeHeads = []
+    smallerEnemy = False
+    for enemySnake in enemySnakes:
+        #if the length of the enemy snake is less then good
+        if len(enemySnake) < len(mySnake):
+            enemySnakeHeads.append(enemySnake[0])
+
     #am i hungry? If so go to food.
     if energy <= HUNGRYAT:
         #-- Get food code priority -- food
         #get list of food points
         #generate return direction to go toward food
+        #you are the food! GET FOOD
+        return howDoIgetThere(me, closest(myHead, food))
+    elif smallerEnemy != True:
         return howDoIgetThere(me, closest(myHead, food))
     else:
         #--Find kill point priority -- kill!
-        #if distance(me, closest(me,heads)) <= 3:
+        #if distance(me, closest(me,enemySnakeHeads)) == 3:
             #this is close quarters rules. Be sure to be a jerk
-            #TO DO: Handle this
-            #print('close quarters combat')
+            #try to keep the distance at 3
+            #if the distance to the snakehead is less than 2 move away
+        #    print('close quarters combat')
         #get list of snake heads
         #get closest head
         return howDoIgetThere(me, closest(myHead,heads))
 
-
-    """
-    assume I have a list of other snake coordinates and
-    """
     #me is [x,y] for our head
         #heads is [[x,y],[x,y]]
         #food is [[x,y],[x,y]]
@@ -80,7 +88,7 @@ def desiredTrajectory(myHead, heads, food, energy):
 #def desiredTrajectory(me, heads, food, energy):
 
 if __name__=='__main__':
-    print(desiredTrajectory([3,1], [[7,8],[3,2]], [[7,1]], 100))
+    print(desiredTrajectory([3,1], [[[100,8],[3,2]],[[45,8],[3,2]]], [[7,1]], 100))
 
 #getOurSnakeCoords(data)
 #getOtherSnakeCoords(data)
