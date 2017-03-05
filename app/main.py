@@ -4,6 +4,7 @@ import random
 from grid import Grid
 from gridhelper import *
 from snakestuff import *
+import taunt
 
 #Auto Deployed at http://jerksnake.herokuapp.com
 
@@ -173,7 +174,7 @@ def start():
     # TODO: Do things with data
 
     return {
-        'color': '#800000',
+        'color': nastyColour(),
         'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
         'head_url': head_url,
         'name': 'JerkSnake'
