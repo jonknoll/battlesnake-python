@@ -17,7 +17,7 @@ def closest(reference, pointList):
         #check for default valuw
         movesToPoint = distance(reference, point)
         if(movesToPoint < shortest):
-            print("Set shortest point to: {} is {}".format(reference, point))
+            #print("Gridhelper: Set shortest point to: {} is {}".format(reference, point))
             shortest = movesToPoint
             closestPoint = point
     return closestPoint

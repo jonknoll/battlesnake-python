@@ -52,12 +52,13 @@ def desiredTrajectory(me, heads, food, energy):
         return howDoIgetThere(me, closest(me, food))
     else:
         #--Find kill point priority -- kill!
+        if distance(me, closest(me,heads)) <= 3:
+            #this is close quarters rules. Be sure to be a jerk
+            #TODO: Handle this
+            print('close quarters combat')
         #get list of snake heads
         #get closest head
-        #generate return direction to get there
-        print("nothing here")
-
-
+        return howDoIgetThere(me, closest(me,heads))
 
 
     """
@@ -74,12 +75,12 @@ def desiredTrajectory(me, heads, food, energy):
     #check for triangles of doom
     #determine most threatening move
 
-    return 'Nothing yet'
+    return random.choice(['left','right','up','down'])
 
 #def desiredTrajectory(me, heads, food, energy):
 
 if __name__=='__main__':
-    print(desiredTrajectory([2,1], [[7,8],[3,4]], [[3,1]], 100))
+    print(desiredTrajectory([3,1], [[7,8],[3,2]], [[7,1]], 100))
 
 #getOurSnakeCoords(data)
 #getOtherSnakeCoords(data)
