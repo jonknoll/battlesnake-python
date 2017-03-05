@@ -58,9 +58,9 @@ def desiredTrajectory(mySnake, enemySnakes, food, energy):
         #get list of food points
         #generate return direction to go toward food
         #you are the food! GET FOOD
-        return howDoIgetThere(me, closest(myHead, food))
+        return howDoIgetThere(myHead, closest(myHead, food))
     elif smallerEnemy != True:
-        return howDoIgetThere(me, closest(myHead, food))
+        return howDoIgetThere(myHead, closest(myHead, food))
     else:
         #--Find kill point priority -- kill!
         #if distance(me, closest(me,enemySnakeHeads)) == 3:
@@ -70,7 +70,7 @@ def desiredTrajectory(mySnake, enemySnakes, food, energy):
         #    print('close quarters combat')
         #get list of snake heads
         #get closest head
-        return howDoIgetThere(me, closest(myHead,heads))
+        return howDoIgetThere(myHead, closest(myHead,enemySnakeHeads))
 
     #me is [x,y] for our head
         #heads is [[x,y],[x,y]]

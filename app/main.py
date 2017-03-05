@@ -5,6 +5,7 @@ from grid import Grid
 from gridhelper import *
 from snakestuff import *
 from taunt import *
+from decisionGrid import *
 
 #Auto Deployed at http://jerksnake.herokuapp.com
 
@@ -176,9 +177,11 @@ def start():
 def move():
     data = bottle.request.json
     grid = build_grid(data)
+    ourSnakeObj = getMySnakeObj(data)
     ourSnake = getOurSnakeCoords(data)
     head = getHeadCoord(ourSnake)
     ourTrajectory = getTrajectory(ourSnake)
+    enemySnakes = getOtherSnakeCoordsList(data)
 
     #This needs to be all snake heads
     #heads = [ourCoord]
@@ -212,8 +215,8 @@ def move():
 
 
     # Get an ordered list of directions to try
-    directionsToTry = getDirectionsToTry(directionsToOurGoal)
-    
+    #directionsToTry = getDirectionsToTry(directionsToOurGoal)
+    directionsToTry = desiredTrajectory(ourSnake, enemySnakes, data['food'], ourSnakeObj['health_points'])
     
     # Check this against our direction algorithm and eliminate invaid
     # directions
