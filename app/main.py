@@ -216,8 +216,11 @@ def move():
 
     # Get an ordered list of directions to try
     #directionsToTry = getDirectionsToTry(directionsToOurGoal)
-    directionsToTry = desiredTrajectory(ourSnake, enemySnakes, data['food'], ourSnakeObj['health_points'])
+    desiredTraj = desiredTrajectory(ourSnake, enemySnakes, data['food'], ourSnakeObj['health_points'])
     
+    directionsToTry = getDirectionsToTry(desiredTraj)
+    
+    print("directions to try are = {}".format(directionsToTry))
     # Check this against our direction algorithm and eliminate invaid
     # directions
     for direction in directionsToTry:
@@ -225,12 +228,16 @@ def move():
         result = safetyCheck(grid, coord)
         if(result == 'OK'):
             ourMove = direction
+            print("direction {} status {}".format(direction, result))
             # Good to go, just leave
             break;
         elif(result == 'NO'):
+            print("direction {} status {}".format(direction, result))
             continue
         else: # Danger, use only if we have to
+            print("direction {} status {}".format(direction, result))
             ourMove = direction
+    
     
     
     
