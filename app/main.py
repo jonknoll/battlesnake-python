@@ -125,24 +125,15 @@ def getTrajectory(snakeCoordsList):
     else:
         return('up')
 
-def coordToDirection(currentCoord, proposedCoord):
-    if((proposedCoord[0] - currentCoord[0]) == 1):
-        direction = 'right'
-    elif((proposedCoord[0] - currentCoord[0]) == -1):
-        direction = 'left'
-    elif((proposedCoord[1] - currentCoord[1]) == 1):
-        direction = 'up'
-    else:
-        direction = 'down'
-    return(direction)
-
 #looks at what is in the spot and determines if safe to move there
 def safetyCheck(grid, coord):
     whatIsHere = grid.get(coord)
     if(whatIsHere in [OPEN_SPACE, FOOD, EAT_THIS_HEAD, DIAGONAL_HEAD]):
-        return(True)
+        return('OK')
+    elif(whatIsHere in [ORTHAGONAL_HEAD]):
+        return('DANGER')
     else:
-        return(False)
+        return('NO')
 
 
 
@@ -213,21 +204,47 @@ def move():
 
     # TODO: Do things with data
 
+    ################################################################
+    # take a list of desired directions in from the goal algorithm
+    # use current trajectory for now...
+    ################################################################
+    directionsToOurGoal = [ourTrajectory]
 
+
+    # Get an ordered list of directions to try
+    directionsToTry = getDirectionsToTry(directionsToOurGoal)
     
-    directions = []
-    if(safetyCheck(grid, [head[0]-1,head[1]]) == True):
-        print("x-1,y = {}".format(grid.get([head[0]-1,head[1]])))
-        directions.append('left')
-    if(safetyCheck(grid, [head[0]+1,head[1]]) == True):
-        print("x+1,y = {}".format(grid.get([head[0]+1,head[1]])))
-        directions.append('right')
-    if(safetyCheck(grid, [head[0],head[1]+1]) == True):
-        print("x,y+1 = {}".format(grid.get([head[0],head[1]+1])))
-        directions.append('down')
-    if(safetyCheck(grid, [head[0],head[1]-1]) == True):
-        print("x,y-1 = {}".format(grid.get([head[0],head[1]-1])))
-        directions.append('up')
+    
+    # Check this against our direction algorithm and eliminate invaid
+    # directions
+    for direction in directionsToTry:
+        coord = dirToCoord(head, direction)
+        result = safetyCheck(grid, coord)
+        if(result == 'OK'):
+            ourMove = direction
+            # Good to go, just leave
+            break;
+        elif(result == 'NO'):
+            continue
+        else: # Danger, use only if we have to
+            ourMove = direction
+    
+    
+    
+    
+#     directions = []
+#     if(safetyCheck(grid, [head[0]-1,head[1]]) == True):
+#         print("x-1,y = {}".format(grid.get([head[0]-1,head[1]])))
+#         directions.append('left')
+#     if(safetyCheck(grid, [head[0]+1,head[1]]) == True):
+#         print("x+1,y = {}".format(grid.get([head[0]+1,head[1]])))
+#         directions.append('right')
+#     if(safetyCheck(grid, [head[0],head[1]+1]) == True):
+#         print("x,y+1 = {}".format(grid.get([head[0],head[1]+1])))
+#         directions.append('down')
+#     if(safetyCheck(grid, [head[0],head[1]-1]) == True):
+#         print("x,y-1 = {}".format(grid.get([head[0],head[1]-1])))
+#         directions.append('up')
 
     #calculate area available to move from a point
         #if area == totalboardspace-sumOfAllSnakes
@@ -243,12 +260,14 @@ def move():
     #
 
     # see if it's ok to keep going the direction we are going
-    if(ourTrajectory in directions):
-        ourMove = ourTrajectory
-    elif len(directions) == 0:
-        ourMove = ourTrajectory
-    else:
-        ourMove = random.choice(directions)
+#     if(ourTrajectory in directions):
+#         ourMove = ourTrajectory
+#     elif len(directions) == 0:
+#         ourMove = ourTrajectory
+#     else:
+#         ourMove = random.choice(directions)
+        
+        
     print("Our move is = {}".format(ourMove))
 
 
