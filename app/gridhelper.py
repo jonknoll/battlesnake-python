@@ -3,6 +3,29 @@ import math
 
 import random
 
+
+def coordToDirection(currentCoord, proposedCoord):
+    if((proposedCoord[0] - currentCoord[0]) == 1):
+        direction = 'right'
+    elif((proposedCoord[0] - currentCoord[0]) == -1):
+        direction = 'left'
+    elif((proposedCoord[1] - currentCoord[1]) == 1):
+        direction = 'up'
+    else:
+        direction = 'down'
+    return(direction)
+
+def dirToCoord(headCoord, direction):
+    if(direction == 'right'):
+        return([headCoord[0]+1, headCoord[1]])
+    elif(direction == 'left'):
+        return([headCoord[0]-1, headCoord[1]])
+    elif(direction == 'up'):
+        return([headCoord[0], headCoord[1]-1])
+    else:
+        return([headCoord[0], headCoord[1]+1])
+
+
 # absolute value distance between
 def distance(first, second):
     dist = math.fabs(first[0]-second[0]) + math.fabs(first[1]-second[1])
@@ -25,7 +48,7 @@ def closest(reference, pointList):
     return closestPoint
 
 
-def directionsToTry(desiredDir):
+def getDirectionsToTry(desiredDir):
     directions = ['up', 'down', 'left', 'right']
     priorityList = []
     priorityList.append(desiredDir[0])
@@ -43,7 +66,7 @@ def directionsToTry(desiredDir):
             randChoice = random.choice(['left', 'right'])
             priorityList.append(randChoice)
             directions.remove(randChoice)
-    randChoice = randChoice(directions)
+    randChoice = random.choice(directions)
     priorityList.append(randChoice)
     directions.remove(randChoice)
     priorityList.append(directions[0])
