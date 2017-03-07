@@ -9,6 +9,14 @@ from decisionGrid import *
 
 #Auto Deployed at http://jerksnake.herokuapp.com
 
+# Running battle_snake locally
+# Install Docker
+# Run: docker run -it -p 4000:4000 stembolt/battle_snake
+# Visit http://localhost:4000 NOTE: Docker runs on a virtual lan so when you
+# add a snake to the game you cannot use localhost, use your internal IP instead.
+
+
+
 # Values to put in grid, priorities TBD
 OPEN_SPACE = '.'
 ME_SNAKE = '#'
@@ -27,10 +35,6 @@ TARGET = 'T'
 
 #at what point
 HUNGRYAT = 50;
-
-# if none of these are options then don't change direction...gonna die
-defensiveMovePriorityList = [WALL, ME_SNAKE, OTHER_SNAKE, OTHER_HEAD, ORTHAGONAL_HEAD, DIAGONAL_HEAD, EAT_THIS_HEAD, OPEN_SPACE, FOOD] #, TARGET]
-
 
 def build_grid(data):
     """
@@ -131,37 +135,9 @@ def build_grid(data):
             grid.setList(newSnakeCoords, OTHER_SNAKE)
             # mark the tail as a potential move
             grid.set(snakeCoords[-1], TAIL)
-        
 
     return(grid)
 
-
-
-def getDesiredDirection(trajectory):
-    # determine goal here!
-    return(trajectory)
-    
-
-def priority(energy, heads):
-    otherSnakeCloser = False
-    ourCoord = heads[0]
-
-    #THE NEAREST FOOD COORD TO HEAD MUST BE KNOWN!
-    foodCoord = [0,0]
-    movesToFood = distance(ourCoord, foodCoord)
-    for enemyHead in range(1,len(heads)-1):
-        #need a function to check distance between points
-        if distance(enemyHead,foodCoord) < movesToFood:
-            otherSnakeCloser = True
-            break
-        print('which head is closest to the food?')
-
-    priority = {}
-    if energy <= HUNGRYAT:
-        priority.append({'hunger':nearestFood(headLocation)})
-    else:
-        priority = 'jerk'
-    return priority
 
 #looks at what is in the spot and determines if safe to move there
 def safetyCheck(grid, coord):
@@ -175,6 +151,10 @@ def safetyCheck(grid, coord):
     else:
         return('NO')
 
+
+##############################################
+# WEB CALLS
+#############################################
 
 
 @bottle.route('/static/<path:path>')
@@ -226,8 +206,6 @@ def move():
     #for each snake head append to heads list
     #energy = data['health_points']
 
-    #desire = priority(energy, heads)
-
 
     print("!SNAKE MOVE!")
     print("ourSnake={}".format(ourSnake))
@@ -246,19 +224,25 @@ def move():
     # TODO: Do things with data
 
     ################################################################
-    # take a list of desired directions in from the goal algorithm
-    # use current trajectory for now...
+    # Offense: Take a list of desired directions in from the goal algorithm
     ################################################################
-    directionsToOurGoal = [ourTrajectory]
+    
+    # Simple test goal: keep on our current trajectory
+    #desiredTraj = [ourTrajectory]
+    
+    # Slightly more interesting goal: pick a random direction
+    #desiredTraj = random.choice([['up'], ['down'], ['left'], ['right']])
 
-
-    # Get an ordered list of directions to try
-    #directionsToTry = getDirectionsToTry(directionsToOurGoal)
+    # Jerk snake goal: go to heads of other snakes, or eat food
     desiredTraj = desiredTrajectory(ourSnake, enemySnakes, data['food'], ourSnakeObj['health_points'])
     
+    # Get an ordered list of directions to try
     directionsToTry = getDirectionsToTry(desiredTraj)
-    
     print("directions to try are = {}".format(directionsToTry))
+    
+    ################################################################
+    # Defense: Rank directions in terms of risk, and take the lowest risk move
+    ################################################################
     # Check this against our direction algorithm and eliminate invaid
     # directions
     ourMove = None
@@ -287,48 +271,11 @@ def move():
             # don't even bother suggesting it as a move
             continue            
     
-    
+    # No move is valid! We gonna die! Just head straight on.
     if(ourMove == None):
         print("Can't go anywhere! Maintain current trajectory")
         ourMove = ourTrajectory
-    
-    
-#     directions = []
-#     if(safetyCheck(grid, [head[0]-1,head[1]]) == True):
-#         print("x-1,y = {}".format(grid.get([head[0]-1,head[1]])))
-#         directions.append('left')
-#     if(safetyCheck(grid, [head[0]+1,head[1]]) == True):
-#         print("x+1,y = {}".format(grid.get([head[0]+1,head[1]])))
-#         directions.append('right')
-#     if(safetyCheck(grid, [head[0],head[1]+1]) == True):
-#         print("x,y+1 = {}".format(grid.get([head[0],head[1]+1])))
-#         directions.append('down')
-#     if(safetyCheck(grid, [head[0],head[1]-1]) == True):
-#         print("x,y-1 = {}".format(grid.get([head[0],head[1]-1])))
-#         directions.append('up')
-
-    #calculate area available to move from a point
-        #if area == totalboardspace-sumOfAllSnakes
-            #continue
-
-
-
-    # inspect surroundings for bad moves
-        #avoid locations with pointed corners
-    # if nearest snake to nearest food go for the food
-    # if snake head nearer than food go toward sweet spots until hungry
-        # sweet spots are [0,2],[0,-2],[2,0],[-2,0],[1,1],[-1,1],[-1,-1],[1,-1]
-    #
-
-    # see if it's ok to keep going the direction we are going
-#     if(ourTrajectory in directions):
-#         ourMove = ourTrajectory
-#     elif len(directions) == 0:
-#         ourMove = ourTrajectory
-#     else:
-#         ourMove = random.choice(directions)
-        
-        
+                
     print("Our move is = {}".format(ourMove))
 
 
