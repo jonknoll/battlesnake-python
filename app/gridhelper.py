@@ -1,7 +1,4 @@
 import math
-#just definitions
-
-import random
 
 
 def coordToDirection(currentCoord, proposedCoord):
@@ -46,31 +43,6 @@ def closest(reference, pointList):
             shortest = movesToPoint
             closestPoint = point
     return closestPoint
-
-
-def getDirectionsToTry(desiredDir):
-    directions = ['up', 'down', 'left', 'right']
-    priorityList = []
-    priorityList.append(desiredDir[0])
-    directions.remove(desiredDir[0])
-    
-    if(len(desiredDir) > 1):
-        priorityList.append(desiredDir[1])
-        directions.remove(desiredDir[1])
-    else:
-        if(desiredDir[0] == 'left') or (desiredDir[0] == 'right'):
-            randChoice = random.choice(['up', 'down'])
-            priorityList.append(randChoice)
-            directions.remove(randChoice)
-        else:
-            randChoice = random.choice(['left', 'right'])
-            priorityList.append(randChoice)
-            directions.remove(randChoice)
-    randChoice = random.choice(directions)
-    priorityList.append(randChoice)
-    directions.remove(randChoice)
-    priorityList.append(directions[0])
-    return(priorityList)
 
 
 
