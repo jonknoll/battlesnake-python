@@ -12,9 +12,9 @@ class Grid(object):
     
     def get(self, coord):
         if((coord[0] >= self.width) or (coord[0] < 0)):
-            return(-1)
+            return(None)
         elif((coord[1] >= self.height) or (coord[1] < 0)):
-            return(-1)
+            return(None)
         return self.grid[coord[1]][coord[0]]
     
     def setList(self, coordsList, val):
@@ -30,7 +30,7 @@ class Grid(object):
                     coordsList.append([x,y])
         return(coordsList)
     
-    def getOrthagonal(self, coord):
+    def getOrthogonal(self, coord):
         coordsList = []
         right = [coord[0]+1, coord[1]]
         left = [coord[0]-1, coord[1]]
@@ -68,16 +68,29 @@ class Grid(object):
         self.set(coord, newVal)
         return(newVal)
     
-    def printGrid(self, style=0):
+    def printGrid(self):
         print("GRID: ({} x {})".format(self.width, self.height))
         for y in range(self.height):
             #print("y={}".format(y))
             for x in range(self.width):
-                if(self.get([x,y]) == 0):
-                    sys.stdout.write("{} ".format(style))
+                if(self.get([x,y]) == None):
+                    print("0", end=" ")
                 else:
-                    sys.stdout.write("{} ".format(self.get([x,y])))  
-            sys.stdout.flush()
+                    print("{}".format(self.get([x,y])), end=" ")
+            #sys.stdout.flush()
+            print("")
+    
+    def printGridElement(self, element):
+        print("GRID: ({} x {})".format(self.width, self.height))
+        for y in range(self.height):
+            #print("y={}".format(y))
+            for x in range(self.width):
+                if(self.get([x,y]) == None):
+                    print("0", end=" ")
+                else:
+                    gridPoint = self.get([x,y])
+                    print("{}".format(gridPoint[element]), end=" ")
+            #sys.stdout.flush()
             print("")
     
     def print2(self):

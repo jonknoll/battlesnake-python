@@ -2,7 +2,7 @@ import bottle
 import os
 import sys
 import random
-import strategy2017
+import strategy
 
 #Auto Deployed at http://jerksnake.herokuapp.com
 
@@ -53,15 +53,15 @@ def start():
         # What color your snake should be on the board.
         # Accepts any valid CSS color.
         # https://developer.mozilla.org/en-US/docs/Web/CSS/color
-        'color': strategy2017.nastyColour(),
+        'color': '#4a412a',
         'name': "JerkSnake II",
 
         # URL of the image to display as your avatar.
         'head_url': head_url,
-        'taunt': strategy2017.taunt(), #'{} ({}x{})'.format(game_id, board_width, board_height),
+        'taunt': "No room for error", #'{} ({}x{})'.format(game_id, board_width, board_height),
         #head_type: HeadType;
         #tail_type: TailType;
-        'secondary_color': strategy2017.nastyColour(),
+        'secondary_color': '#ff00ff',
     }
 
 
@@ -70,7 +70,7 @@ def move():
     print("MOVE request")
     data = bottle.request.json
 
-    ourMove = strategy2017.executeStrategy(data)
+    ourMove = strategy.executeStrategy(data)
     return {
         'move': ourMove,
         'taunt': 'battlesnake-python!'
