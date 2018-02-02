@@ -4,3 +4,6 @@ battlesnake
 .idea
 .project
 .pydevproject
+
+app/bs
+.gitignore

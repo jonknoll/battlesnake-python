@@ -1,6 +1,6 @@
 import bottle
 import os
-import random
+import sys
 from grid import Grid
 from gridhelper import *
 from snakestuff import *
@@ -159,15 +159,18 @@ def safetyCheck(grid, coord):
 
 @bottle.route('/static/<path:path>')
 def static(path):
-    return bottle.static_file(path, root='static/')
+    print("STATIC request")
+    print("path={}".format(path))
+    return bottle.static_file(path, root='../static/')
 
 
-@bottle.post('/start')
+@bottle.post('//start')
 def start():
+    print("START request")
     data = bottle.request.json
 
     print("\nSNAKE START!")
-    for k,v in data.iteritems():
+    for k,v in data.items():
         print("{}={}".format(k,v))
     print("SNAKE INFO:")
 
@@ -175,8 +178,11 @@ def start():
     game_id = data['game_id']
     board_width = data['width']
     board_height = data['height']
+    print("URL Parts:")
+    for k,v in bottle.request.urlparts.items():
+        print("{}={}".format(k, v))
 
-    head_url = '%s://%s/static/jerk.png' % (
+    head_url = "{}://{}/static/jerk.png".format(
         bottle.request.urlparts.scheme,
         bottle.request.urlparts.netloc
     )
@@ -191,8 +197,9 @@ def start():
     }
 
 
-@bottle.post('/move')
+@bottle.post('//move')
 def move():
+    print("MOVE request")
     data = bottle.request.json
     grid = build_grid(data)
     ourSnakeObj = getMySnakeObj(data)
@@ -288,4 +295,10 @@ def move():
 # Expose WSGI app (so gunicorn can find it)
 application = bottle.default_app()
 if __name__ == '__main__':
+    print("RUNNING MAIN... STARTING BOTTLE...")
+    print(sys.version)
+    bottle.debug(True)
     bottle.run(application, host=os.getenv('IP', '0.0.0.0'), port=os.getenv('PORT', '8080'))
+
+#curl http://192.168.99.1:8080
+

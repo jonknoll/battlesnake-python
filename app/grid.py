@@ -5,7 +5,7 @@ class Grid(object):
     def __init__(self, width, height, initialValue=0):
         self.width = width
         self.height = height
-        self.grid = [[initialValue for x in range(width)] for y in range(height)]
+        self.grid = [[initialValue for _ in range(width)] for _ in range(height)]
     
     def set(self, coord, val):
         self.grid[coord[1]][coord[0]] = val
