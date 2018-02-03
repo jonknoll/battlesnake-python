@@ -13,7 +13,7 @@ def executeStrategy(data):
     ourTrajectory = getTrajectory(ourSnake)
     enemySnakes = getOtherSnakeCoordsList(data)
 
-    board.printGrid()
+    board.printGridElement(0)
     
     directions = ['up', 'down', 'left', 'right']
     ourMove = random.choice(directions)
@@ -30,7 +30,7 @@ ME_SNAKE = '#'
 ME_HEAD = '@'
 ME_TAIL = '~'
 WALL = -1
-FOOD = '*'
+FOOD = 'F'
 #OTHER_SNAKE = 'o'
 EATABLE_HEAD = 'o'
 #EAT_THIS_HEAD = '$'
@@ -40,7 +40,7 @@ EATABLE_HEAD = 'o'
 #TAIL = 'T'
 
 NO_GO = 'X'
-MAYBE_GO = 'x'
+MAYBE_GO = '+'
 
 def buildGrid(data):
     """
@@ -50,9 +50,6 @@ def buildGrid(data):
     element2 -- direction you would turn to get here, this is very useful at the
         end when you need to make a move based on your goal
     
-    Fill the grid in layers from the most harmless thing to the most
-    dangerous thing. Upper layers can overwrite lower layers. Numbers indicate
-    same layer.
     """
 
     height = data['height']
@@ -61,6 +58,9 @@ def buildGrid(data):
     mySnakeObj = getMySnakeObj(data)
 
     grid = Grid(width, height, OPEN_SPACE)
+    
+    # First fill the grid with one value (element0) at each location. This
+    # makes it easy to put stuff from the JSON blob into the grid.
         
     # Food
     grid.setList(data['food'], FOOD)
@@ -74,8 +74,10 @@ def buildGrid(data):
         else:
             # other snake bodies are always no-go
             if(len(snake['coords']) >= len(mySnakeObj['coords'])):
+                # Bigger snake, head is NO GO
+                grid.set(snake['coords'][0], NO_GO)
                 # put a danger zone around the head of larger snake
-                orthList = grid.getOrthagonal(snake['coords'][0])
+                orthList = grid.getOrthogonal(snake['coords'][0])
                 grid.setList(orthList, MAYBE_GO)
             else:
                 # snake is shorter than us, eat this head!
@@ -84,5 +86,17 @@ def buildGrid(data):
             grid.set(snake['coords'][-1], MAYBE_GO)
         # rest of body is no-go
         grid.setList(snake['coords'][1:-1], NO_GO)
+
+
+    # This is the theoretical maximum number of moves that it could take to
+    # get to a location (all the way around the outside perimeter). Using this
+    # number instead of like MAX_INT
+    maxSnakeMove = (height + width) * 2
+
+    # Now populate the grid with a list at each location (default values first)
+    for y in range(height):
+        for x in range(width):
+            symbol = grid.get((x, y))
+            grid.set((x, y), [symbol, maxSnakeMove, None])
 
     return(grid)
