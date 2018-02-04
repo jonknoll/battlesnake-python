@@ -4,13 +4,20 @@ import sys
 import random
 import strategy
 
-#Auto Deployed at http://jerksnake.herokuapp.com
 
-# Running battle_snake locally
-# Install Docker
-# Run: docker run -it -p 4000:4000 stembolt/battle_snake
-# Visit http://localhost:4000 NOTE: Docker runs on a virtual lan so when you
-# add a snake to the game you cannot use localhost, use your internal IP instead.
+# Running battle_snake locally (Feb 2018)
+# Install virtualbox
+# You probably need to install Vagrant, but I'm not sure what it does.
+# Install Docker, which should install kitematic.
+# Run kitematic and search for the battlesnake container.
+# And Run
+# If the docker container cannot connect locally, then make sure you either
+# a) turn off the McAfee firewall (but it will just turn back on in 15min)
+# b) use one of the ports that it has open (any port listed as "local" with
+#    no other caveates. The list as of Feb 2018 is:
+#    20-21, 111, 502, 4987, 4988-4989, 5500-5509, 6001-6002, 8282, 13777
+# ALSO: make sure the URL you give the server doesn't have a trailing slash!
+# or you will have to add a slash to all the bottle post requests
 
 
 
@@ -26,7 +33,7 @@ def static(path):
     return bottle.static_file(path, root='../static/')
 
 
-@bottle.post('//start')
+@bottle.post('/start')
 def start():
     print("START request")
     data = bottle.request.json
@@ -65,7 +72,7 @@ def start():
     }
 
 
-@bottle.post('//move')
+@bottle.post('/move')
 def move():
     print("MOVE request")
     data = bottle.request.json
@@ -83,7 +90,7 @@ if __name__ == '__main__':
     print("RUNNING MAIN... STARTING BOTTLE...")
     print(sys.version)
     # Use port 502 to get through the stupid McAfee firewall that won't stay off!
-    bottle.run(application, host=os.getenv('IP', '0.0.0.0'), port=os.getenv('PORT', '502'))
+    bottle.run(application, host=os.getenv('IP', '0.0.0.0'), port=os.getenv('PORT', '5500'))
 
 #curl http://192.168.99.1:8080
 

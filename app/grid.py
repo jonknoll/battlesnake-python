@@ -1,5 +1,3 @@
-import sys
-
 
 class Grid(object):
     def __init__(self, width, height, initialValue=0):
@@ -29,20 +27,20 @@ class Grid(object):
                 if(thingAtCoord in typeList):
                     coordsList.append([x,y])
         return(coordsList)
-    
+
     def getOrthogonal(self, coord):
         coordsList = []
         right = [coord[0]+1, coord[1]]
         left = [coord[0]-1, coord[1]]
         down = [coord[0], coord[1]+1]
         up = [coord[0], coord[1]-1]
-        if(self.get(right) != -1):
+        if(self.get(right) != None):
             coordsList.append(right)
-        if(self.get(left) != -1):
+        if(self.get(left) != None):
             coordsList.append(left)
-        if(self.get(down) != -1):
+        if(self.get(down) != None):
             coordsList.append(down)
-        if(self.get(up) != -1):
+        if(self.get(up) != None):
             coordsList.append(up)
         return(coordsList)
     
@@ -52,13 +50,13 @@ class Grid(object):
         bottomLeft = [coord[0]-1, coord[1]+1]
         topRight = [coord[0]+1, coord[1]-1]
         bottomRight = [coord[0]+1, coord[1]+1]
-        if(self.get(topLeft) != -1):
+        if(self.get(topLeft) != None):
             coordsList.append(topLeft)
-        if(self.get(bottomLeft) != -1):
+        if(self.get(bottomLeft) != None):
             coordsList.append(bottomLeft)
-        if(self.get(topRight) != -1):
+        if(self.get(topRight) != None):
             coordsList.append(topRight)
-        if(self.get(bottomRight) != -1):
+        if(self.get(bottomRight) != None):
             coordsList.append(bottomRight)
         return(coordsList)
     
@@ -79,31 +77,7 @@ class Grid(object):
                     print("{}".format(self.get([x,y])), end=" ")
             #sys.stdout.flush()
             print("")
-    
-    def printGridElement(self, element):
-        print("GRID: ({} x {})".format(self.width, self.height))
-        for y in range(self.height):
-            #print("y={}".format(y))
-            for x in range(self.width):
-                if(self.get([x,y]) == None):
-                    print("0", end=" ")
-                else:
-                    gridPoint = self.get([x,y])
-                    print("{}".format(gridPoint[element]), end=" ")
-            #sys.stdout.flush()
-            print("")
-    
-    def print2(self):
-        print(self.grid)
-    
-    def countFreeBlocks(self, startingCoord, direction, freeTypes):
-        """
-        startingCoord = [x,y]
-        direction =  'up', 'down', 'left' or 'right'
-        freeTypes = list of things that are considered free space
-        """
-        pass
-        
+            
             
 if __name__=='__main__':
     testGrid = Grid(5,10)
