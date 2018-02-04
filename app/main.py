@@ -60,14 +60,14 @@ def start():
         # What color your snake should be on the board.
         # Accepts any valid CSS color.
         # https://developer.mozilla.org/en-US/docs/Web/CSS/color
-        'color': '#64FF2B',
+        'color': '#3F3F3F',
         'name': "JerkSnake II",
 
         # URL of the image to display as your avatar.
         'head_url': head_url,
         'taunt': "No room for error", #'{} ({}x{})'.format(game_id, board_width, board_height),
-        #head_type: HeadType;
-        #tail_type: TailType;
+        'head_type': 'smile',
+        'tail_type': 'freckled',
         'secondary_color': '#ff00ff',
     }
 

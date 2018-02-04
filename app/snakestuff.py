@@ -1,5 +1,3 @@
-from grid import Grid
-
 
 def getMySnakeObj(data):
     myId = data['you']
@@ -66,4 +64,13 @@ def compareSnake(snakeA, snakeB):
         return("<")
     else:
         return("=")
+    
+def snakesLargerThanUs(data):
+    ourSnake = getOurSnakeCoords(data)
+    otherSnakesList = getOtherSnakeCoordsList(data)
+    largerSnakes = 0
+    for otherSnake in otherSnakesList:
+        if len(ourSnake) <= len(otherSnake):
+            largerSnakes += 1
+    return(largerSnakes)
     
