@@ -26,45 +26,99 @@ def executeStrategy(data):
     height = data['height']
     width = data['width']
     ourSnakeObj = getMySnakeObj(data)
-    ourSnake = getOurSnakeCoords(data)
-    head = getHeadCoord(ourSnake)
-    ourTrajectory = getTrajectory(ourSnake)
+    ourSnakeCoords = getOurSnakeCoords(data)
+    ourTrajectory = getTrajectory(ourSnakeCoords)
     enemySnakes = getOtherSnakeCoordsList(data)
+    maxSnakeMove = getMaxSnakeMove(data) 
 
     # Build Grid with symbols for different things
     symbolGrid = buildSymbolGrid(data)
     symbolGrid.printGrid()
 
-    # This is the theoretical maximum number of moves that it could take to
-    # get to a location (all the way around the outside perimeter). Using this
-    # number instead of like MAX_INT
-    maxSnakeMove = (height + width) * 2
+    
     # Build grid that contains the number of moves that it would take to get
     # somewhere.
-    distanceGrid = Grid(height, width, maxSnakeMove)
-    distanceGrid.printGrid()
+    distanceGrid = Grid3d(height, width, maxSnakeMove)
+    #distanceGrid.printGrid()
     # Build grid that contains which direction the snake should go to get to
     # that coordinate.
-    moveGrid = Grid(height, width, None)
-    moveGrid.printGrid()
+    moveGrid = MoveGrid(height, width, None)
+    #moveGrid.printGrid()
     
     
     # Get lists of stuff on the board
-    noGoCoords = symbolGrid.getListOfType([ME_HEAD, ME_SNAKE, NO_GO])
-    maybeGoCoords = symbolGrid.getListOfType([MAYBE_GO, ME_TAIL])
+    noGoCoordsList = symbolGrid.getListOfType([ME_HEAD, ME_SNAKE, NO_GO])
+    maybeGoCoordsList = symbolGrid.getListOfType([MAYBE_GO, ME_TAIL])
+    barrierCoordsList = noGoCoordsList
     
-    print("NO GO COORDS={}".format(noGoCoords))
-    print("MAYBE GO COORDS={}".format(maybeGoCoords))
+    print("NO GO COORDS={}".format(noGoCoordsList))
+    print("MAYBE GO COORDS={}".format(maybeGoCoordsList))
+    print("BARRIER COORDS={}".format(barrierCoordsList))
+    
+    # build up the list of moves at each location
+    ourHead = getHeadCoord(ourSnakeCoords)
+    fillDistanceAndMoveGrids(distanceGrid, moveGrid, ourHead, barrierCoordsList)
+    
+    distanceGrid.printGrid(2)
+    moveGrid.printGrid()
     
     
-    
-    directions = ['up', 'down', 'left', 'right']
-    ourMove = random.choice(directions)
-    
+    # Decide on a direction
+    ourMove = decisionTree(data, symbolGrid, distanceGrid, moveGrid)
+        
     
     print("Our move is {}".format(ourMove))
     return(ourMove)
 
+
+class Grid3d(Grid):
+    """
+    Class stores "3 dimentional" coordinates: [<x>, <y>, <direction>]
+    """
+    
+    def getOrthogonalWithDirection(self, coord):
+        coordsList3d = []
+        right = (coord[0]+1, coord[1], 'R')
+        left = (coord[0]-1, coord[1], 'L')
+        down = (coord[0], coord[1]+1, 'D')
+        up = (coord[0], coord[1]-1, 'U')
+        if(self.get(right) != None):
+            coordsList3d.append(right)
+        if(self.get(left) != None):
+            coordsList3d.append(left)
+        if(self.get(down) != None):
+            coordsList3d.append(down)
+        if(self.get(up) != None):
+            coordsList3d.append(up)
+        return(coordsList3d)
+
+    def getOrthogonalPreserveDirection(self, coord3d):
+        coordsList3d = self.getOrthogonal(coord3d)
+        for i in range(len(coordsList3d)):
+            # add the original direction into the coordinates
+            coordsList3d[i] = (coordsList3d[i][0], coordsList3d[i][1], coord3d[2])
+        return(coordsList3d)
+    
+    def getOrthogonalFromList3d(self, inputList3d):
+        coordsList3d = []
+        for coord3d in inputList3d:
+            orthList3d = self.getOrthogonalPreserveDirection(coord3d)
+            for orthCoord3d in orthList3d:
+                if orthCoord3d not in coordsList3d:
+                    coordsList3d.append(orthCoord3d)
+        return(coordsList3d)
+
+class MoveGrid(Grid):
+    def getMove(self, coord):
+        val = self.get(coord)
+        if(val == 'L'):
+            return("left")
+        elif(val == 'R'):
+            return("right")
+        elif(val == 'U'):
+            return("up")
+        else:
+            return("down")
 
 
 
@@ -115,3 +169,133 @@ def buildSymbolGrid(data):
         # rest of body is no-go
         grid.setList(snake['coords'][1:-1], NO_GO)
     return(grid)
+
+
+def fillDistanceAndMoveGrids(distanceGrid, moveGrid, startingCoord, noGoCoords):
+    maxMoves = distanceGrid.get((0,0))
+    
+    # make a list of all the coordinates to try this round
+    # remove them if they are one of the no go coordinates
+    stepList = distanceGrid.getOrthogonalWithDirection(startingCoord)
+    #if len(stepList) == 0:
+    #    return
+    
+    for stepNumber in range(1, maxMoves):
+        coordsForNextStep = []
+        print("STEP {}".format(stepNumber))
+        
+        # Take out any new coordinates that overlap a no go coordinate.
+        tempList = []
+        for stepCoord in stepList:
+            coord2d = (stepCoord[0], stepCoord[1])
+            if coord2d not in noGoCoords:
+                tempList.append(stepCoord)
+            else: 
+                print("no go coord: {}".format(coord2d))
+        stepList = tempList
+        # if no coordinates to check out then we're done.
+        if len(stepList) == 0:
+            break
+        
+        print("step {}: {}".format(stepNumber, stepList))
+        # go through the coordinates and see if any of them are more optimal than
+        # what is already there. If so, overwrite
+        for stepCoord in stepList:
+            if stepNumber < distanceGrid.get(stepCoord):
+                distanceGrid.set(stepCoord, stepNumber)
+                # update move grid
+                moveGrid.set(stepCoord, stepCoord[2])
+                # keep this coordinate for the next step
+                coordsForNextStep.append(stepCoord)
+        # Get the coordinates for the next step
+        stepList = distanceGrid.getOrthogonalFromList3d(coordsForNextStep)
+                
+                    
+def decisionTree(data, symbolGrid, distanceGrid, moveGrid):
+    """
+    Decisions for Snake:
+    - Goals are: Food, Heads of smaller snakes, Chase our own tail
+    - The direction is determined by whatever is the top goal for this round
+    - The top priority is food if below the health threshold
+    - The second priority is go for heads of smaller snakes
+    - If health is good and no smaller snakes then chase tail
+    - If none of the goals can be reached then see if any of our directions are
+      in the "MAYBE_GO" list, if so, take it.
+    - If there is no move available, then make a random choice and die.
+    """
+    maxSnakeMove = getMaxSnakeMove(data)
+    
+    # Priority #1 -- stay healthy!
+    health = getOurSnakeHealth(data)
+    if health < 75:
+        foodCoordsList = symbolGrid.getListOfType([FOOD])
+        numFood = len(foodCoordsList)
+        if numFood != 0: # most likely
+            foodToEat = foodCoordsList[0]
+            if numFood > 1:
+                for coord in foodCoordsList:
+                    if distanceGrid.get(coord) < distanceGrid.get(foodToEat):
+                        foodToEat = coord
+            if distanceGrid.get(foodToEat) < maxSnakeMove:
+                print("Decision: Eat food at {}, distance={}, move={}".format(foodToEat, distanceGrid.get(foodToEat), moveGrid.getMove(foodToEat)))
+                return(moveGrid.getMove(foodToEat))
+            else:
+                print("Decision: food at {}, no path to food".format(foodToEat))
+        else:
+            print("Desicion: no food!")
+    else:
+        print("Decision: health at {}, moving on...".format(health))
+    # if no food or lots of health then move on
+    
+    # Priority #2 -- eat smaller snakes!
+    eatableSnakeHeadsList = symbolGrid.getListOfType([EATABLE_HEAD])
+    numHeads = len(eatableSnakeHeadsList)
+    if numHeads != 0: # most likely
+        headToEat = eatableSnakeHeadsList[0]
+        if numHeads > 1:
+            for coord in eatableSnakeHeadsList:
+                if distanceGrid.get(coord) < distanceGrid.get(headToEat):
+                    headToEat = coord
+        if distanceGrid.get(headToEat) < maxSnakeMove:
+            print("Decision: Eat head at {}, distance={}, move={}".format(headToEat, distanceGrid.get(headToEat), moveGrid.getMove(headToEat)))
+            return(moveGrid.getMove(headToEat))
+    else:
+        print("Desicion: no snakes to eat!")
+    # if no snakes to eat then move on
+    
+    # Priority #3 -- chase tail!
+    myTail = getTailCoord(getOurSnakeCoords(data))
+    if distanceGrid.get(myTail) < maxSnakeMove:
+        print("Decision: Chase tail at {}, distance={}, move={}".format(myTail, distanceGrid.get(myTail), moveGrid.getMove(myTail)))
+        return(moveGrid.getMove(myTail))
+    else:
+        print("Decision: Can't get to tail!")
+    
+    # Nothing within reach! Better do some statistical checking
+    # Go with whichever direction has the most coordinates marked
+    numLeft = len(moveGrid.getListOfType(['L']))
+    numRight = len(moveGrid.getListOfType(['R']))
+    numUp = len(moveGrid.getListOfType(['U']))
+    numDown = len(moveGrid.getListOfType(['D']))
+    
+    num = numLeft
+    ourMove = "left"
+    if numRight > num:
+        num = numRight
+        ourMove = "right"
+    if numUp > num:
+        num = numUp
+        ourMove = "up"
+    if numDown > num:
+        num = numDown
+        ourMove = "down"
+    print("Decision: go with the majority (L={},R={},U={},D={}) move={}".format(numLeft, numRight, numUp, numDown, ourMove))
+    return(ourMove)
+    
+    #directions = ['up', 'down', 'left', 'right']
+    #ourMove = random.choice(directions)
+    
+    
+
+
+

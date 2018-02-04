@@ -23,17 +23,17 @@ class Grid(object):
         coordsList = []
         for y in range(self.height):
             for x in range(self.width):
-                thingAtCoord = self.get([x,y])
+                thingAtCoord = self.get((x, y))
                 if(thingAtCoord in typeList):
-                    coordsList.append([x,y])
+                    coordsList.append((x, y))
         return(coordsList)
 
     def getOrthogonal(self, coord):
         coordsList = []
-        right = [coord[0]+1, coord[1]]
-        left = [coord[0]-1, coord[1]]
-        down = [coord[0], coord[1]+1]
-        up = [coord[0], coord[1]-1]
+        right = (coord[0]+1, coord[1])
+        left = (coord[0]-1, coord[1])
+        down = (coord[0], coord[1]+1)
+        up = (coord[0], coord[1]-1)
         if(self.get(right) != None):
             coordsList.append(right)
         if(self.get(left) != None):
@@ -46,10 +46,10 @@ class Grid(object):
     
     def getDiagonal(self, coord):
         coordsList = []
-        topLeft = [coord[0]-1, coord[1]-1]
-        bottomLeft = [coord[0]-1, coord[1]+1]
-        topRight = [coord[0]+1, coord[1]-1]
-        bottomRight = [coord[0]+1, coord[1]+1]
+        topLeft = (coord[0]-1, coord[1]-1)
+        bottomLeft = (coord[0]-1, coord[1]+1)
+        topRight = (coord[0]+1, coord[1]-1)
+        bottomRight = (coord[0]+1, coord[1]+1)
         if(self.get(topLeft) != None):
             coordsList.append(topLeft)
         if(self.get(bottomLeft) != None):
@@ -66,17 +66,16 @@ class Grid(object):
         self.set(coord, newVal)
         return(newVal)
     
-    def printGrid(self):
+    def printGrid(self, columnWidth=1):
         print("GRID: ({} x {})".format(self.width, self.height))
         for y in range(self.height):
             #print("y={}".format(y))
             for x in range(self.width):
-                if(self.get([x,y]) == None):
-                    print("0", end=" ")
+                if(self.get((x,y)) == None):
+                    print("{:{width}}".format(0, width=columnWidth), end=" ")
                 else:
-                    print("{}".format(self.get([x,y])), end=" ")
-            #sys.stdout.flush()
-            print("")
+                    print("{:{width}}".format(self.get((x,y)), width=columnWidth), end=" ")
+            print("")      
             
             
 if __name__=='__main__':

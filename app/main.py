@@ -60,7 +60,7 @@ def start():
         # What color your snake should be on the board.
         # Accepts any valid CSS color.
         # https://developer.mozilla.org/en-US/docs/Web/CSS/color
-        'color': '#4a412a',
+        'color': '#64FF2B',
         'name': "JerkSnake II",
 
         # URL of the image to display as your avatar.
@@ -80,7 +80,7 @@ def move():
     ourMove = strategy.executeStrategy(data)
     return {
         'move': ourMove,
-        'taunt': 'battlesnake-python!'
+        'taunt': ourMove
     }
 
 
