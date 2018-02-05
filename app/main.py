@@ -51,7 +51,7 @@ def start():
     #    print("{}={}".format(k, v))
     print(bottle.request.urlparts)
 
-    head_url = "{}://{}/static/jerk.png".format(
+    head_url = "{}://{}/static/leechy.png".format(
         bottle.request.urlparts.scheme,
         bottle.request.urlparts.netloc
     )
@@ -61,7 +61,7 @@ def start():
         # Accepts any valid CSS color.
         # https://developer.mozilla.org/en-US/docs/Web/CSS/color
         'color': '#3F3F3F',
-        'name': "JerkSnake II",
+        'name': "Leechy",
 
         # URL of the image to display as your avatar.
         'head_url': head_url,
