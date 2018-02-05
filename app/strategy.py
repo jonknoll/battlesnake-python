@@ -5,21 +5,21 @@ from snakestuff import *
 
 # Values to put in grid, priorities TBD
 OPEN_SPACE = '.'
-ME_SNAKE = '#'
-ME_HEAD = '@'
-ME_TAIL = '~'
-WALL = -1
 FOOD = 'F'
-#OTHER_SNAKE = 'o'
-EATABLE_HEAD = 'o'
+ME_HEAD = '@'
+ME_SNAKE = '#'
+ME_TAIL = '~'
+EATABLE_HEAD_ZONE = 'H'
+OTHER_HEAD = 'O'
+OTHER_BODY = 'o'
+MAYBE_GO = '+'
 #EAT_THIS_HEAD = '$'
 #ORTHOGONAL_HEAD = '+'
 #DIAGONAL_HEAD = '-'
 #CLOSE_TO_WALL = '?'
 #TAIL = 'T'
-
-NO_GO = 'X'
-MAYBE_GO = '+'
+#NO_GO = 'X'
+#WALL = -1
 
 
 def executeStrategy(data):
@@ -29,12 +29,12 @@ def executeStrategy(data):
     ourSnakeCoords = getOurSnakeCoords(data)
     ourTrajectory = getTrajectory(ourSnakeCoords)
     enemySnakes = getOtherSnakeCoordsList(data)
-    maxSnakeMove = getMaxSnakeMove(data) 
 
     # Build Grid with symbols for different things
     symbolGrid = buildSymbolGrid(data)
     symbolGrid.printGrid()
 
+    maxSnakeMove = symbolGrid.getMaxSnakeMove() 
     
     # Build grid that contains the number of moves that it would take to get
     # somewhere.
@@ -45,22 +45,27 @@ def executeStrategy(data):
     moveGrid = MoveGrid(height, width, None)
     #moveGrid.printGrid()
     
-    
     # Get lists of stuff on the board
-    noGoCoordsList = symbolGrid.getListOfType([ME_HEAD, ME_SNAKE, NO_GO])
-    maybeGoCoordsList = symbolGrid.getListOfType([MAYBE_GO, ME_TAIL])
-    barrierCoordsList = noGoCoordsList
+    noGoCoordsList = symbolGrid.getListOfType([ME_HEAD, ME_SNAKE, OTHER_HEAD, OTHER_BODY])
+    # Note: You would expect ME_TAIL to be in the maybeGoCoordsList, but then
+    # it doesn't get a distance associated with it. However the tail will
+    # disappear for one move when the snake eats food (2 tail coords so it gets
+    # covered up by the body) so actually we should be ok.
+    maybeGoCoordsList = symbolGrid.getListOfType([MAYBE_GO])
+    # build grid using only safe moves
+    barrierCoordsList = noGoCoordsList + maybeGoCoordsList
     
-    print("NO GO COORDS={}".format(noGoCoordsList))
-    print("MAYBE GO COORDS={}".format(maybeGoCoordsList))
-    print("BARRIER COORDS={}".format(barrierCoordsList))
+    #print("NO GO COORDS={}".format(noGoCoordsList))
+    #print("MAYBE GO COORDS={}".format(maybeGoCoordsList))
+    #print("BARRIER COORDS={}".format(barrierCoordsList))
     
     # build up the list of moves at each location
     ourHead = getHeadCoord(ourSnakeCoords)
     fillDistanceAndMoveGrids(distanceGrid, moveGrid, ourHead, barrierCoordsList)
     
+    # Print grids for debugging
     distanceGrid.printGrid(2)
-    moveGrid.printGrid()
+    #moveGrid.printGrid()
     
     
     # Decide on a direction
@@ -117,15 +122,35 @@ class MoveGrid(Grid):
             return("right")
         elif(val == 'U'):
             return("up")
+        elif(val == 'D'):
+            return("down")
         else:
+            print("***ERROR*** Invalid coordinate! {} = {}, using default 'down'".format(coord, val))
             return("down")
     
     def getMoveCounts(self):
+        """
+        Get the number of spaces that are available for each move. For example,
+        if you are trying to decide whether to move up or right, rather than
+        making a random decision, you can get the move counts for each
+        direction. There might be 4 positions available if you move up, and 40
+        positions if you move right. All other things being equal, you should
+        move in the direction that has the most opportunity for future moves.
+        
+        Return a dictionary of the 4 directions and the number of positions on
+        the board available with that direction. Since you can't sort a
+        dictionary, there is also a list of keys in the order of preferred
+        direction (reverse sorted so the first element is the most favoured
+        direction).
+        """
         numLeft = len(self.getListOfType(['L']))
         numRight = len(self.getListOfType(['R']))
         numUp = len(self.getListOfType(['U']))
         numDown = len(self.getListOfType(['D']))
-        return {"left":numLeft, "right":numRight, "up":numUp, "down":numDown}
+        moveDict = {"left":numLeft, "right":numRight, "up":numUp, "down":numDown}
+        preferredMoveList = sorted(moveDict, key=moveDict.get, reverse=True)
+        print("moveDict={}".format(moveDict))
+        return (moveDict, preferredMoveList)
     
     def getHighestMoveCount(self):
         moveCounts = self.getMoveCounts()
@@ -137,12 +162,13 @@ class MoveGrid(Grid):
 
 def buildSymbolGrid(data):
     """
-    Each grid element is a tuple of data about that space:
-    element0 -- friendly symbol that represents what is at this location.
-    element1 -- num moves to get here, 0 if this space cannot be occupied
-    element2 -- direction you would turn to get here, this is very useful at the
-        end when you need to make a move based on your goal
+    Build a grid and use symbols to represent all the items in the grid.
+    Then you can use getListOfType() to get all the coordinates for a list
+    of symbols. You can also print this grid (super useful for debugging).
     
+    The grid should be built up in layers from least dangerous (eg. food) to
+    most dangerous (eg. snake body). That way, any additional zones put in
+    place do not clobber no-go coordinates.
     """
 
     height = data['height']
@@ -151,39 +177,47 @@ def buildSymbolGrid(data):
     mySnakeObj = getMySnakeObj(data)
 
     grid = Grid(width, height, OPEN_SPACE)
-    
-    # First fill the grid with one value (element0) at each location. This
-    # makes it easy to put stuff from the JSON blob into the grid.
         
-    # Food
+    # Food (very safe)
     grid.setList(data['food'], FOOD)
-
-    # Snake heads
+    
+    # Area around Eatable Snake Heads (safe)
     for snake in data['snakes']:
-        if(snake['id'] == myId):
-            grid.setList(snake['coords'], ME_SNAKE)
-            grid.set(snake['coords'][0], ME_HEAD)
-            grid.set(snake['coords'][-1], ME_TAIL)
-        else:
-            # other snake bodies are always no-go
+        if(snake['id'] != myId):
+            if(len(snake['coords']) < len(mySnakeObj['coords'])):
+                # snake is shorter than us. Positions around the head are
+                # the goal, not the head itself, as the snake's head will not
+                # be there on the next move.
+                orthList = grid.getOrthogonal(snake['coords'][0])
+                grid.setList(orthList, EATABLE_HEAD_ZONE)
+
+    # Area around Non-eatable Snake Heads (risky: maybe-go)
+    for snake in data['snakes']:
+        if(snake['id'] != myId):
             if(len(snake['coords']) >= len(mySnakeObj['coords'])):
                 # Bigger snake
                 # put a danger zone around the head of larger snake
                 orthList = grid.getOrthogonal(snake['coords'][0])
                 grid.setList(orthList, MAYBE_GO)
-            else:
-                # snake is shorter than us. Positions around the head are
-                # the goal, not the head itself, as the snake's head will not
-                # be there on the next move.
-                orthList = grid.getOrthogonal(snake['coords'][0])
-                grid.setList(orthList, EATABLE_HEAD)
-            # mark the tail as a potential move
-            grid.set(snake['coords'][-1], MAYBE_GO)
 
-    # Snake bodies other than tail
+    # Snake heads and bodies (deadly: no-go) and tails (risky: maybe-go)
     # Must lay down after everything else, so it doesn't get overwritten
     for snake in data['snakes']:
-        grid.setList(snake['coords'][:-1], NO_GO)
+        if(snake['id'] == myId):
+            # Keep this order (tail, snake, head). There are 2 tail coordinates
+            # at the same location when the snake eats food. So the tail is
+            # temporarily hidden by the body which gets overlayed after the
+            # tail has been placed. This is actually what we want so we don't
+            # choose the tail spot after a snake has eaten something.
+            grid.set(snake['coords'][-1], ME_TAIL)
+            grid.setList(snake['coords'][1:-1], ME_SNAKE)
+            grid.set(snake['coords'][0], ME_HEAD)
+            print("me snake coords={}".format(snake['coords']))
+        else:
+            grid.set(snake['coords'][-1], MAYBE_GO)
+            grid.setList(snake['coords'][1:-1], OTHER_BODY)
+            grid.set(snake['coords'][0], OTHER_HEAD)
+            print("snake coords={}".format(snake['coords']))
     return(grid)
 
 
@@ -240,77 +274,132 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid):
       in the "MAYBE_GO" list, if so, take it.
     - If there is no move available, then make a random choice and die.
     """
-    maxSnakeMove = getMaxSnakeMove(data)
+    maxSnakeMove = symbolGrid.getMaxSnakeMove()
     ourMove = None
-    ourSnakeLength = len(getOurSnakeCoords(data))
     
     # Priority #1 -- don't paint yourself into a corner
-    moveDict = moveGrid.getMoveCounts()
+    moveDict, preferredMoveList = moveGrid.getMoveCounts()
     
         # Priority #2 -- stay healthy and try to be the biggest snake
-    if(ourMove == None):
+    if ourMove == None:
         health = getOurSnakeHealth(data)
         largerThanUs = snakesLargerThanUs(data)
         print("Health={}, snakes larger than us={}".format(health, largerThanUs))
         if (health < 75) or (largerThanUs > 0):
-            foodCoordsList = symbolGrid.getListOfType([FOOD])
-            numFood = len(foodCoordsList)
-            if numFood != 0: # most likely
-                foodToEat = foodCoordsList[0]
-                if numFood > 1:
-                    for coord in foodCoordsList:
-                        if distanceGrid.get(coord) < distanceGrid.get(foodToEat):
-                            foodToEat = coord
-                if distanceGrid.get(foodToEat) < maxSnakeMove:
-                    print("Decision: Eat food at {}, distance={}, move={}".format(foodToEat, distanceGrid.get(foodToEat), moveGrid.getMove(foodToEat)))
-                    ourMove = moveGrid.getMove(foodToEat)
-                else:
-                    print("Decision: food at {}, no path to food".format(foodToEat))
-            else:
-                print("Desicion: no food!")
-        # if no food or lots of health then move on
+            nearestFoodList = getNearestOfType([FOOD], symbolGrid, distanceGrid)
+            numFood = len(nearestFoodList)
+            #print("nearestFoodList={}".format(nearestFoodList))
+            if numFood == 0:
+                #print("No Food! Moving on...")
+                pass
+            elif numFood == 1:
+                ourMove = moveGrid.getMove(nearestFoodList[0])
+                print("Decision: Eat food at {}, distance={}, ourMove={}".format(nearestFoodList[0], distanceGrid.get(nearestFoodList[0]), moveGrid.getMove(nearestFoodList[0])))
+            else: # special case: more than one food at equal distance!
+                moveList = []
+                for coord in nearestFoodList:
+                    moveList.append(moveGrid.getMove(coord))
+                for k in preferredMoveList:
+                    if k in moveList:
+                        ourMove = k
+                        break
+                print("Decision: Multiple Food: {}, distance={}, ourMove={}".format(nearestFoodList, distanceGrid.get(nearestFoodList[0]), ourMove))    
     
     # Priority #3 -- eat smaller snakes!
-    if(ourMove == None):
-        eatableSnakeHeadsList = symbolGrid.getListOfType([EATABLE_HEAD])
+    if ourMove == None: # turn this off for less risky behaviour!
+        eatableSnakeHeadsList = getNearestOfType([EATABLE_HEAD_ZONE], symbolGrid, distanceGrid)
+        #print("eatableSnakeHeadsList={}".format(eatableSnakeHeadsList))
         numHeads = len(eatableSnakeHeadsList)
-        if numHeads != 0: # most likely
-            headToEat = eatableSnakeHeadsList[0]
-            if numHeads > 1:
-                for coord in eatableSnakeHeadsList:
-                    if distanceGrid.get(coord) < distanceGrid.get(headToEat):
-                        headToEat = coord
-            if distanceGrid.get(headToEat) < maxSnakeMove:
-                print("Decision: Eat head at {}, distance={}, move={}".format(headToEat, distanceGrid.get(headToEat), moveGrid.getMove(headToEat)))
-                ourMove = moveGrid.getMove(headToEat)
-        else:
-            print("Desicion: no snakes to eat!")
+        if numHeads == 0:
+            #print("No Snakes! Moving on...")
+            pass
+        elif numHeads == 1:
+            ourMove = moveGrid.getMove(eatableSnakeHeadsList[0])
+            print("Decision: Eat head at {}, distance={}, ourMove={}".format(eatableSnakeHeadsList[0], distanceGrid.get(eatableSnakeHeadsList[0]), moveGrid.getMove(eatableSnakeHeadsList[0])))
+        else: # special case: more than one snake head at equal distance!
+            moveList = []
+            for coord in eatableSnakeHeadsList:
+                moveList.append(moveGrid.getMove(coord))
+            for k in preferredMoveList:
+                if k in moveList:
+                    ourMove = k
+                    break
+            print("Decision: Multiple heads: {}, distance={}, ourMove={}".format(eatableSnakeHeadsList, distanceGrid.get(eatableSnakeHeadsList[0]), ourMove))    
+    
     # if no snakes to eat then move on
     
     # Priority #4 -- chase tail!
-    if(ourMove == None):
+    if ourMove == None:
         myTail = getTailCoord(getOurSnakeCoords(data))
         if distanceGrid.get(myTail) < maxSnakeMove:
-            print("Decision: Chase tail at {}, distance={}, move={}".format(myTail, distanceGrid.get(myTail), moveGrid.getMove(myTail)))
             ourMove = moveGrid.getMove(myTail)
-        else:
-            print("Decision: Can't get to tail!")
+            print("Decision: Chase tail at {}, distance={}, ourMove={}".format(myTail, distanceGrid.get(myTail), moveGrid.getMove(myTail)))
+        #else:
+        #    print("Decision: Can't get to tail!")
     
-    # Nothing within reach! Better do some statistical checking
-    # Go with whichever direction has the most coordinates marked
-    if(ourMove == None):
-        ourMove = max(moveDict, key=moveDict.get)
-    
-        if moveDict[ourMove] > 0:
+    # Nothing within reach! Start to panic.
+    # First check the moveDict to see if any direction shows available moves.
+    # Go with whichever direction has the most coordinates marked.
+    # Since moveDict is sorted, just pick the first direction.
+    if ourMove == None:
+        # make sure there is at least one position to move into
+        if moveDict[preferredMoveList[0]] > 0:
+            ourMove = preferredMoveList[0]
             print("Decision: go with the majority (L={},R={},U={},D={}) move={}".format(moveDict['left'], moveDict['right'], moveDict['up'], moveDict['down'], ourMove))
-        else:
-            directions = ['up', 'down', 'left', 'right']
-            ourMove = random.choice(directions)
-            print("PANIC! No moves available! Going random: {}".format(ourMove))
+
+    # If we get here, then we should be panicing.
+    # At this point, go to the list of "maybe go" positions. This is a last
+    # resort because moving into these positions are high risk (eg. moving
+    # beside the head of a larger snake). But if no other choice, then a
+    # maybe-go is better than a random fate.
+    if ourMove == None:
+        ourSnakeHead = getHeadCoord(getOurSnakeCoords(data))
+        orthogonalList = symbolGrid.getOrthogonal(ourSnakeHead)
+        maybeGoCoordsList = symbolGrid.getListOfType([ME_TAIL, MAYBE_GO])
+        for coord in orthogonalList:
+            if coord in maybeGoCoordsList:
+                # found a direction -- go for it
+                ourMove = getTrajectory([coord, ourSnakeHead])
+                print("Decision: No good options. Resort to the Maybe-go list, move={}".format(ourMove))
+    
+    # Full panic, we're probably going to die. Keep on our trajectory, so we
+    # at least don't turn in on ourself.
+    if ourMove == None:
+        #directions = ['up', 'down', 'left', 'right']
+        #ourMove = random.choice(directions)
+        ourMove = getTrajectory(getOurSnakeCoords(data))
+        print("Descision: PANIC! No moves available! Going straight ahead: {}".format(ourMove))
     return(ourMove)
     
-    
-    
+
+def getNearestOfType(thingsToFindList, symbolGrid, distanceGrid):
+    """
+    Pass in an array of things to find in the symbol table, and return an
+    array of coordinates of the nearest things. Normally there will be an arry
+    with 1 coordinate, but in some cases there will be 2 things of equal
+    distance away. When that happens, further decisions need to be made as
+    to which thing to head towards.
+    """
+    maxSnakeMove = symbolGrid.getMaxSnakeMove()
+    foundThingsList = symbolGrid.getListOfType(thingsToFindList)
+    distanceDict = {} # key=coordinate, value=distance from head
+    nearestThingsCoordsList = []
+    for coord in foundThingsList:
+        coordDistance = distanceGrid.get(coord)
+        if coordDistance < maxSnakeMove: # check for unobtainium
+            distanceDict[coord] = coordDistance
+    #print("distanceDict={}".format(distanceDict))
+    # klunktastic
+    sortedCoords = sorted(distanceDict, key=distanceDict.get)
+    sortedDistances = sorted(distanceDict.values())
+    #print("sortedCoords={}, sortedDistances={}".format(sortedCoords, sortedDistances))
+    shortestDistance = None
+    for i in range(len(sortedCoords)):
+        if shortestDistance == None or sortedDistances[i] == shortestDistance:
+            nearestThingsCoordsList.append(sortedCoords[i])
+            shortestDistance = sortedDistances[i]
+    return(nearestThingsCoordsList)
+
 
 
 

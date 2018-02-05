@@ -65,6 +65,14 @@ class Grid(object):
         newVal = origVal + val
         self.set(coord, newVal)
         return(newVal)
+
+    def getMaxSnakeMove(self):
+        """
+        This is the theoretical maximum number of moves that it could take to
+        get to a location (all the way around the outside perimeter). Using this
+        number instead of like MAX_INT
+        """
+        return((self.height + self.width) * 2)
     
     def printGrid(self, columnWidth=1):
         print("GRID: ({} x {})".format(self.width, self.height))

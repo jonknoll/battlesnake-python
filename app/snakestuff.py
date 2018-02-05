@@ -45,16 +45,6 @@ def getTrajectory(snakeCoordsList):
     else:
         return('up')
 
-def getMaxSnakeMove(data):
-    """
-    This is the theoretical maximum number of moves that it could take to
-    get to a location (all the way around the outside perimeter). Using this
-    number instead of like MAX_INT
-    """
-    height = data['height']
-    width = data['width']
-    return((height + width) * 2)
-
 def compareSnake(snakeA, snakeB):
     lenA = len(snakeA['coords'])
     lenB = len(snakeB['coords'])
