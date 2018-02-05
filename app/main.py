@@ -30,7 +30,7 @@ import strategy
 def static(path):
     print("STATIC request")
     print("path={}".format(path))
-    return bottle.static_file(path, root='../static/')
+    return bottle.static_file(path, root='/static/')
 
 
 @bottle.post('/start')
