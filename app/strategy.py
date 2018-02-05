@@ -1,6 +1,5 @@
 import random
 from grid import Grid
-from gridhelper import *
 from snakestuff import *
 
 # Values to put in grid, priorities TBD
