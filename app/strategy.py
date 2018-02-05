@@ -71,7 +71,7 @@ def executeStrategy(data):
     moveDict['down'] = countOpenSpaces(width, height, (ourHead[0], ourHead[1]+1), barrierCoordsList)
     
     # Print grids for debugging
-    distanceGrid.printGrid(2)
+    #distanceGrid.printGrid(2)
     #moveGrid.printGrid()
     
     
@@ -190,12 +190,12 @@ def buildSymbolGrid(data):
             grid.set(snake['coords'][-1], ME_TAIL)
             grid.setList(snake['coords'][1:-1], ME_SNAKE)
             grid.set(snake['coords'][0], ME_HEAD)
-            print("me snake coords={}".format(snake['coords']))
+            #print("me snake coords={}".format(snake['coords']))
         else:
             grid.set(snake['coords'][-1], MAYBE_GO)
             grid.setList(snake['coords'][1:-1], OTHER_BODY)
             grid.set(snake['coords'][0], OTHER_HEAD)
-            print("snake coords={}".format(snake['coords']))
+            #print("snake coords={}".format(snake['coords']))
     return(grid)
 
 
@@ -251,6 +251,9 @@ def countOpenSpaces(width, height, startingCoord, noGoCoords):
     if counterGrid.get(startingCoord) == None: # outside the grid
         return(0)
     
+    # Set starting coordinate as valid
+    counterGrid.set(startingCoord, 1)
+    
     stepList = counterGrid.getOrthogonal(startingCoord, noGoCoords)
     
     for _ in range(counterGrid.getMaxSnakeMove()):
@@ -266,6 +269,7 @@ def countOpenSpaces(width, height, startingCoord, noGoCoords):
         else:
             break
     numOpenSpaces = counterGrid.count(1)
+    #counterGrid.printGrid()
     return(numOpenSpaces)
 
     
@@ -290,7 +294,7 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
     preferredMoveList = sorted(moveDict, key=moveDict.get, reverse=True)
     
     # Useful runtime stats
-    print("Health={}, snakes larger than us={}".format(health, largerThanUs))
+    print("Health={}, Size={}, snakes larger than us={}".format(health, mySnakeLength, largerThanUs))
     print("moveDict={}, preferredMoveList={}".format(moveDict, preferredMoveList))
     
     # Priority #1 -- don't paint yourself into a corner
