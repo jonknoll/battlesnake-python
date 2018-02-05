@@ -1,6 +1,6 @@
 
 class Grid(object):
-    def __init__(self, width, height, initialValue=0):
+    def __init__(self, width, height, initialValue=None):
         self.width = width
         self.height = height
         self.grid = [[initialValue for _ in range(width)] for _ in range(height)]
@@ -44,6 +44,13 @@ class Grid(object):
             coordsList.append(up)
         return(coordsList)
     
+    def getOrthogonalFromList(self, coordsList, noGoList=[]):
+        orthCoords = []
+        for coord in coordsList:
+            orthCoords += self.getOrthogonal(coord, noGoList)
+        return(set(orthCoords))
+        
+    
     def getDiagonal(self, coord):
         coordsList = []
         topLeft = (coord[0]-1, coord[1]-1)
@@ -83,7 +90,13 @@ class Grid(object):
                     print("{:{width}}".format(0, width=columnWidth), end=" ")
                 else:
                     print("{:{width}}".format(self.get((x,y)), width=columnWidth), end=" ")
-            print("")      
+            print("")
+            
+    def count(self, thingToLookFor):
+        """
+        count the number of grid positions that have thingToLookFor
+        """
+        return(sum(x.count(thingToLookFor) for x in self.grid))
             
             
 if __name__=='__main__':
