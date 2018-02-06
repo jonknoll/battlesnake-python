@@ -2,6 +2,7 @@ import bottle
 import os
 import sys
 from app import strategy
+from app.moveconvert import move2018to2017
 
 
 # Running battle_snake locally (Feb 2018)
@@ -75,6 +76,8 @@ def start():
 def move():
     print("MOVE request")
     data = bottle.request.json
+    
+    data = move2018to2017(data)
 
     ourMove = strategy.executeStrategy(data)
     return {
