@@ -8,9 +8,7 @@ def move2018to2017(data):
     """
     convert 2018 move request to the 2017 format
     """
-    print("2018={}".format(data))
     data2017 = convertObject(data)
-    print("2017={}".format(data2017))
     return(data2017)
 
 

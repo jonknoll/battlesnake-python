@@ -37,12 +37,10 @@ def executeStrategy(data):
     
     # Build grid that contains the number of moves that it would take to get
     # somewhere.
-    distanceGrid = Grid3d(height, width, maxSnakeMove)
-    #distanceGrid.printGrid()
+    distanceGrid = Grid3d(width, height, maxSnakeMove)
     # Build grid that contains which direction the snake should go to get to
     # that coordinate.
-    moveGrid = MoveGrid(height, width, None)
-    #moveGrid.printGrid()
+    moveGrid = MoveGrid(width, height, None)
     
     # Get lists of stuff on the board
     noGoCoordsList = symbolGrid.getListOfType([ME_HEAD, ME_SNAKE, OTHER_HEAD, OTHER_BODY])
@@ -61,6 +59,9 @@ def executeStrategy(data):
     # build up the list of moves at each location
     ourHead = getHeadCoord(ourSnakeCoords)
     fillDistanceAndMoveGrids(distanceGrid, moveGrid, ourHead, barrierCoordsList)
+    # Useful grids for debugging
+    #distanceGrid.printGrid(2)
+    #moveGrid.printGrid()
     
     # build a dictionary of the number of open spaces available at each move
     moveDict = {}
@@ -246,7 +247,7 @@ def countOpenSpaces(width, height, startingCoord, noGoCoords):
     if startingCoord in noGoCoords:
         return(0)
     
-    counterGrid = Grid(height, width, 0)
+    counterGrid = Grid(width, height, 0)
     if counterGrid.get(startingCoord) == None: # outside the grid
         return(0)
     
@@ -384,6 +385,7 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
                 # found a direction -- go for it
                 ourMove = getTrajectory([coord, ourSnakeHead])
                 print("Decision: No good options. Resort to the Maybe-go list, move={}".format(ourMove))
+                break
     
     # Full panic, we're probably going to die. Keep on our trajectory, so we
     # at least don't turn in on ourself.
