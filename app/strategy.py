@@ -1,6 +1,6 @@
 import random
-from grid import Grid
-from snakestuff import *
+from app.grid import Grid
+from app.snakestuff import *
 
 # Values to put in grid, priorities TBD
 OPEN_SPACE = '.'

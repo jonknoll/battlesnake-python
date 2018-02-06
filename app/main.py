@@ -1,8 +1,7 @@
 import bottle
 import os
 import sys
-import random
-import strategy
+from app import strategy
 
 
 # Running battle_snake locally (Feb 2018)
@@ -30,7 +29,7 @@ import strategy
 def static(path):
     print("STATIC request")
     print("path={}".format(path))
-    return bottle.static_file(path, root='/static/')
+    return bottle.static_file(path, root='static')
 
 
 @bottle.post('/start')
