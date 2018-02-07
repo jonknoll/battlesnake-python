@@ -348,8 +348,8 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
             print("Decision: Multiple heads: {}, distance={}, ourMove={}".format(eatableSnakeHeadsList, distanceGrid.get(eatableSnakeHeadsList[0]), ourMove))    
     
         # Safety check: how many spaces are we moving into
-        if moveDict[ourMove] < mySnakeLength:
-            print("Safety override for move {}! snake length={}, spaces available={}".format(mySnakeLength, moveDict[ourMove]))
+        if ourMove != None and moveDict[ourMove] < mySnakeLength:
+            print("Safety override for move {}! snake length={}, spaces available={}".format(ourMove, mySnakeLength, moveDict[ourMove]))
             ourMove = None
     
     # Priority #4 -- chase tail!
