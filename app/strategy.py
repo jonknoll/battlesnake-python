@@ -287,15 +287,18 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
     - If there is no move available, then make a random choice and die.
     """
     maxSnakeMove = symbolGrid.getMaxSnakeMove()
-    mySnakeLength = len(getOurSnakeCoords(data))
+    mySnakeCoords = getOurSnakeCoords(data)
+    mySnakeLength = len(mySnakeCoords)
+    myTrajectory = getTrajectory(mySnakeCoords)
     ourMove = None
     health = getOurSnakeHealth(data)
     largerThanUs = snakesLargerThanUs(data)
     preferredMoveList = sorted(moveDict, key=moveDict.get, reverse=True)
+    preferredMoveListRanked = getPreferredMoveListRanked(moveDict)
     
     # Useful runtime stats
-    print("Health={}, Size={}, snakes larger than us={}".format(health, mySnakeLength, largerThanUs))
-    print("moveDict={}, preferredMoveList={}".format(moveDict, preferredMoveList))
+    print("Health={}, Size={}, Trajectory={}, snakes larger than us={}".format(health, mySnakeLength, myTrajectory, largerThanUs))
+    print("moveDict={}, rank={}".format(moveDict, preferredMoveListRanked))
     
     # Priority #1 -- don't paint yourself into a corner
     
@@ -312,19 +315,21 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
                 ourMove = moveGrid.getMove(nearestFoodList[0])
                 print("Decision: Eat food at {}, distance={}, ourMove={}".format(nearestFoodList[0], distanceGrid.get(nearestFoodList[0]), moveGrid.getMove(nearestFoodList[0])))
             else: # special case: more than one food at equal distance!
-                moveList = []
-                for coord in nearestFoodList:
-                    moveList.append(moveGrid.getMove(coord))
-                for k in preferredMoveList:
-                    if k in moveList:
-                        ourMove = k
+                moveList = [moveGrid.getMove(coord) for coord in nearestFoodList]
+                for preferredmove in preferredMoveList:
+                    if preferredmove in moveList:
+                        ourMove = preferredmove
                         break
                 print("Decision: Multiple Food: {}, distance={}, ourMove={}".format(nearestFoodList, distanceGrid.get(nearestFoodList[0]), ourMove))
 
-        # Safety check: how many spaces are we moving into
-        if ourMove != None and moveDict[ourMove] < mySnakeLength:
-            print("Safety override for move {}! snake length={}, spaces available={}".format(ourMove, mySnakeLength, moveDict[ourMove]))
-            ourMove = None
+        # Safety check: how many spaces are we moving into. But only override
+        # if there's at least one move that has enough free spaces to hold our snake.
+        # Otherwise don't bother overriding.
+        if ourMove != None:
+            saferMoves = [x for x in moveDict.values() if x >= mySnakeLength]
+            if moveDict[ourMove] < mySnakeLength and len(saferMoves) > 0:
+                print("Safety override for move {}! snake length={}, spaces available={}".format(ourMove, mySnakeLength, moveDict[ourMove]))
+                ourMove = None
     
     # Priority #3 -- eat smaller snakes!
     if ourMove == "DONT DO THIS": # turn this off for less risky behaviour!
@@ -347,10 +352,14 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
                     break
             print("Decision: Multiple heads: {}, distance={}, ourMove={}".format(eatableSnakeHeadsList, distanceGrid.get(eatableSnakeHeadsList[0]), ourMove))    
     
-        # Safety check: how many spaces are we moving into
-        if ourMove != None and moveDict[ourMove] < mySnakeLength:
-            print("Safety override for move {}! snake length={}, spaces available={}".format(ourMove, mySnakeLength, moveDict[ourMove]))
-            ourMove = None
+        # Safety check: how many spaces are we moving into. But only override
+        # if there's at least one move that has enough free spaces to hold our snake.
+        # Otherwise don't bother overriding.
+        if ourMove != None:
+            saferMoves = [x for x in moveDict.values() if x >= mySnakeLength]
+            if moveDict[ourMove] < mySnakeLength and len(saferMoves) > 0:
+                print("Safety override for move {}! snake length={}, spaces available={}".format(ourMove, mySnakeLength, moveDict[ourMove]))
+                ourMove = None
     
     # Priority #4 -- chase tail!
     if ourMove == None:
@@ -364,28 +373,37 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
     # Nothing within reach! Start to panic.
     # First check the moveDict to see if any direction shows available moves.
     # Go with whichever direction has the most coordinates marked.
-    # Since moveDict is sorted, just pick the first direction.
+    # Prefer current trajectory over random direction (testing this strategy)
     if ourMove == None:
-        # make sure there is at least one position to move into
+        # make sure the top rated direction has at least one position to move
+        # into.
         if moveDict[preferredMoveList[0]] > 0:
-            ourMove = preferredMoveList[0]
-            print("Decision: go with the majority (L={},R={},U={},D={}) move={}".format(moveDict['left'], moveDict['right'], moveDict['up'], moveDict['down'], ourMove))
+            if myTrajectory in preferredMoveListRanked[0]:
+                ourMove = myTrajectory
+                print("Decision: go with majority (current trajectory), move={}".format(ourMove))
+            else:
+                ourMove = random.choice(preferredMoveListRanked[0])
+                print("Decision: go with majority (random in {}) move={}".format(preferredMoveListRanked[0], ourMove))
 
     # If we get here, then we should be panicing.
     # At this point, go to the list of "maybe go" positions. This is a last
     # resort because moving into these positions are high risk (eg. moving
     # beside the head of a larger snake). But if no other choice, then a
     # maybe-go is better than a random fate.
+    # Prefer current trajectory over random direction (testing this strategy)
     if ourMove == None:
         ourSnakeHead = getHeadCoord(getOurSnakeCoords(data))
         orthogonalList = symbolGrid.getOrthogonal(ourSnakeHead)
         maybeGoCoordsList = symbolGrid.getListOfType([ME_TAIL, MAYBE_GO])
-        for coord in orthogonalList:
-            if coord in maybeGoCoordsList:
-                # found a direction -- go for it
-                ourMove = getTrajectory([coord, ourSnakeHead])
-                print("Decision: No good options. Resort to the Maybe-go list, move={}".format(ourMove))
-                break
+        possibleCoordinates = [a for a in orthogonalList if a in maybeGoCoordsList]
+        possibleDirections = [getTrajectory([coord, ourSnakeHead]) for coord in possibleCoordinates]
+        if len(possibleDirections) > 0:
+            if myTrajectory in possibleDirections:
+                ourMove = myTrajectory
+                print("Decision: No good options. Resort to the Maybe-go list (trajectory), move={}".format(ourMove))
+            else:
+                ourMove = random.choice(possibleDirections)
+                print("Decision: No good options. Resort to the Maybe-go list (random), move={}".format(ourMove))
     
     # Full panic, we're probably going to die. Keep on our trajectory, so we
     # at least don't turn in on ourself.
@@ -424,6 +442,21 @@ def getNearestOfType(thingsToFindList, symbolGrid, distanceGrid):
             nearestThingsCoordsList.append(sortedCoords[i])
             shortestDistance = sortedDistances[i]
     return(nearestThingsCoordsList)
+
+
+def getPreferredMoveListRanked(moveDict):
+    """
+    Returns a list of lists of the moves in order of the number of spaces
+    available. Eg. {'left': 8, 'right': 15, 'up': 15, 'down': 0}
+    will return [['right', 'up'], ['left'], ['down']]
+    This thing inverts the dictionary and the reverse sorts.
+    """
+    temp = {}
+    for k, v in moveDict.items():
+        temp[v] = temp.get(v, [])
+        temp[v].append(k)
+    preferredList = [temp[k] for k in sorted(temp, reverse=True)]
+    return(preferredList)
 
 
 

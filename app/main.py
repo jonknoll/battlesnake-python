@@ -91,7 +91,10 @@ application = bottle.default_app()
 if __name__ == '__main__':
     print("RUNNING MAIN... STARTING BOTTLE...")
     print(sys.version)
-    # Use port 502 to get through the stupid McAfee firewall that won't stay off!
+    # Using one of the allowed TCP ports in the McAfee firewall so it doesn't block traffic
+    # As of Feb 2018 we can use: 20-21, 111, 502, 4987, 4988-4989, 5500-5509,
+    # 6001-6002, 8282, 13777
+    # ALSO: make sure the URL you give the server doesn't have a trailing slash!
     bottle.run(application, host=os.getenv('IP', '0.0.0.0'), port=os.getenv('PORT', '5500'))
 
 #curl http://192.168.99.1:8080
