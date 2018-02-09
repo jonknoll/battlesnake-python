@@ -284,7 +284,6 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
       in the "MAYBE_GO" list, if so, take it.
     - If there is no move available, then make a random choice and die.
     """
-    maxSnakeMove = symbolGrid.getPerimeter()
     mySnakeCoords = getOurSnakeCoords(data)
     mySnakeLength = len(mySnakeCoords)
     ourMove = None
@@ -358,7 +357,17 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
             myTail = random.choice(myTailList)
             ourMove = moveGrid.get(myTail)
             print("Decision: Chase tail at {}, distance={}, ourMove={}".format(myTail, distanceGrid.get(myTail), ourMove))
-            
+    
+    # First check the moveDict to see if any direction shows available moves.
+    # Go with whichever direction has the most coordinates marked.
+    # Prefer current trajectory over random direction (testing this strategy)
+    if ourMove == None:
+        # make sure the top rated direction has at least one position to move
+        # into.
+        if moveDict[preferredMoveList[0]] >= mySnakeLength:
+            ourMove = random.choice(preferredMoveListRanked[0])
+            print("Decision: go with majority (random). Spaces={}, move={}".format(moveDict[preferredMoveList[0]], ourMove))
+
     return(ourMove)
 
 
@@ -368,16 +377,15 @@ def panicDecisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
     preferredMoveList = sorted(moveDict, key=moveDict.get, reverse=True)
     preferredMoveListRanked = getPreferredMoveListRanked(moveDict)
     
-    # First check the moveDict to see if any direction shows available moves.
     # Go with whichever direction has the most coordinates marked.
-    # Prefer current trajectory over random direction (testing this strategy)
     if ourMove == None:
         # make sure the top rated direction has at least one position to move
         # into.
         if moveDict[preferredMoveList[0]] > 0:
             ourMove = random.choice(preferredMoveListRanked[0])
-            print("Decision: go with majority (random in {}) move={}".format(preferredMoveListRanked[0], ourMove))
+            print("Decision: go with what's left (random). Spaces={}, move={}".format(moveDict[preferredMoveList[0]], ourMove))
 
+    
     # If we get here, then we should be panicing.
     # At this point, go to the list of "maybe go" positions. This is a last
     # resort because moving into these positions are high risk (eg. moving
