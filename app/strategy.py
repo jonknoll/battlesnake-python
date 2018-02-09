@@ -67,10 +67,10 @@ def executeStrategy(data):
     
     # build a dictionary of the number of open spaces available at each move
     moveDict = {}
-    moveDict['left'] = countOpenSpaces(width, height, (ourHead[0]-1, ourHead[1]), barrierCoordsList)
-    moveDict['right'] = countOpenSpaces(width, height, (ourHead[0]+1, ourHead[1]), barrierCoordsList)
-    moveDict['up'] = countOpenSpaces(width, height, (ourHead[0], ourHead[1]-1), barrierCoordsList)
-    moveDict['down'] = countOpenSpaces(width, height, (ourHead[0], ourHead[1]+1), barrierCoordsList)
+    moveDict['left'] = countOpenSpaces(data, symbolGrid, (ourHead[0]-1, ourHead[1]), barrierCoordsList)
+    moveDict['right'] = countOpenSpaces(data, symbolGrid, (ourHead[0]+1, ourHead[1]), barrierCoordsList)
+    moveDict['up'] = countOpenSpaces(data, symbolGrid, (ourHead[0], ourHead[1]-1), barrierCoordsList)
+    moveDict['down'] = countOpenSpaces(data, symbolGrid, (ourHead[0], ourHead[1]+1), barrierCoordsList)
     
     # Print grids for debugging
     #distanceGrid.printGrid(2)
@@ -89,10 +89,10 @@ def executeStrategy(data):
         fillDistanceAndMoveGrids(distanceGrid, moveGrid, ourHead, noGoCoordsList)
         # build a dictionary of the number of open spaces available at each move
         moveDict = {}
-        moveDict['left'] = countOpenSpaces(width, height, (ourHead[0]-1, ourHead[1]), noGoCoordsList)
-        moveDict['right'] = countOpenSpaces(width, height, (ourHead[0]+1, ourHead[1]), noGoCoordsList)
-        moveDict['up'] = countOpenSpaces(width, height, (ourHead[0], ourHead[1]-1), noGoCoordsList)
-        moveDict['down'] = countOpenSpaces(width, height, (ourHead[0], ourHead[1]+1), noGoCoordsList)
+        moveDict['left'] = countOpenSpaces(data, symbolGrid, (ourHead[0]-1, ourHead[1]), noGoCoordsList)
+        moveDict['right'] = countOpenSpaces(data, symbolGrid, (ourHead[0]+1, ourHead[1]), noGoCoordsList)
+        moveDict['up'] = countOpenSpaces(data, symbolGrid, (ourHead[0], ourHead[1]-1), noGoCoordsList)
+        moveDict['down'] = countOpenSpaces(data, symbolGrid, (ourHead[0], ourHead[1]+1), noGoCoordsList)
         #distanceGrid.printGrid(2)
         #moveGrid.printGrid(4)
         ourMove = decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict)
@@ -135,6 +135,14 @@ def buildSymbolGrid(data):
                 # be there on the next move.
                 orthList = grid.getOrthogonal(snake['coords'][0])
                 grid.setList(orthList, EATABLE_HEAD_ZONE)
+
+    # Special case when the tail is hidden by the body (2 tail coordinates)
+    # immediately after eating food. So in that case, put tail markers around
+    # where the tail would be (can't mark the tail because it's not going to
+    # move for 1 turn.
+    if mySnakeObj['coords'][-1] == mySnakeObj['coords'][-2]:
+        orthList = grid.getOrthogonal(mySnakeObj['coords'][-1])
+        grid.setList(orthList, ME_TAIL)
 
     # Area around Non-eatable Snake Heads (risky: maybe-go)
     for snake in data['snakes']:
@@ -213,15 +221,19 @@ def fillDistanceAndMoveGrids(distanceGrid, moveGrid, startingCoord, noGoCoords):
             tempList = distanceGrid.getOrthogonal(coord, noGoCoords)
             stepDict.update({c:move for c in tempList})
 
-def countOpenSpaces(width, height, startingCoord, noGoCoords):
+def countOpenSpaces(data, symbolGrid, startingCoord, noGoCoords):
     """
     Count the number of spaces the snake could reach starting from the
     starting coordinate. Provide the list of barriers in the noGoCoords.
+    
+    The algorithm has some added complexity because if our tail is in the open
+    space we are looking at, then we will always have an escape. That makes
+    the space basically safe.
     """
     if startingCoord in noGoCoords:
         return(0)
     
-    counterGrid = Grid(width, height, 0)
+    counterGrid = Grid(data['width'], data['height'], 0)
     if counterGrid.get(startingCoord) == None: # outside the grid
         return(0)
     
@@ -244,6 +256,18 @@ def countOpenSpaces(width, height, startingCoord, noGoCoords):
             break
     numOpenSpaces = counterGrid.count(1)
     #counterGrid.printGrid()
+    
+    # special exception for our tail. If the tail is part of the open spaces
+    # and the number of open spaces is shorter than our snake then set the
+    # number of spaces to our snake length.
+    ourSnakeLength = len(getOurSnakeCoords(data))
+    if ourSnakeLength > numOpenSpaces:
+        tailList = symbolGrid.getListOfType([ME_TAIL])
+        openSpaceList = counterGrid.getListOfType([1])
+        # is any tail coordinate in the open space coordinates?
+        if len(set(tailList) & set(openSpaceList)) > 0:
+            numOpenSpaces = ourSnakeLength
+    
     return(numOpenSpaces)
 
     
@@ -309,12 +333,12 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
             #print("No Snakes! Moving on...")
             pass
         elif numHeads == 1:
-            ourMove = moveGrid.getMove(eatableSnakeHeadsList[0])
-            print("Decision: Eat head at {}, distance={}, ourMove={}".format(eatableSnakeHeadsList[0], distanceGrid.get(eatableSnakeHeadsList[0]), moveGrid.getMove(eatableSnakeHeadsList[0])))
+            ourMove = moveGrid.get(eatableSnakeHeadsList[0])
+            print("Decision: Eat head at {}, distance={}, ourMove={}".format(eatableSnakeHeadsList[0], distanceGrid.get(eatableSnakeHeadsList[0]), moveGrid.get(eatableSnakeHeadsList[0])))
         else: # special case: more than one snake head at equal distance!
             moveList = []
             for coord in eatableSnakeHeadsList:
-                moveList.append(moveGrid.getMove(coord))
+                moveList.append(moveGrid.get(coord))
             for preferredMove in preferredMoveList:
                 if preferredMove in moveList:
                     ourMove = preferredMove
@@ -329,10 +353,11 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
     
     # Priority #4 -- chase tail!
     if ourMove == None:
-        myTail = getTailCoord(getOurSnakeCoords(data))
-        if distanceGrid.get(myTail) < maxSnakeMove:
+        myTailList = getNearestOfType([ME_TAIL], symbolGrid, distanceGrid)
+        if len(myTailList) > 0:
+            myTail = random.choice(myTailList)
             ourMove = moveGrid.get(myTail)
-            print("Decision: Chase tail at {}, distance={}, ourMove={}".format(myTail, distanceGrid.get(myTail), moveGrid.get(myTail)))
+            print("Decision: Chase tail at {}, distance={}, ourMove={}".format(myTail, distanceGrid.get(myTail), ourMove))
             
     return(ourMove)
 
