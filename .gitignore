@@ -7,3 +7,4 @@ battlesnake
 
 app/bs
 .gitignore
+/app/scenarios.py
