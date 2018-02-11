@@ -44,6 +44,26 @@ class Grid(object):
             coordsList.append(up)
         return(coordsList)
     
+    def getOrthogonalDict(self, coord, noGoList=[]):
+        """
+        Return the orthogonal directions from a given coordinate as a
+        dictionary: keys=coordinates, values=direction strings (eg. 'left')
+        """
+        coordsDict = {}
+        right = (coord[0]+1, coord[1])
+        left = (coord[0]-1, coord[1])
+        down = (coord[0], coord[1]+1)
+        up = (coord[0], coord[1]-1)
+        if(self.get(right) != None) and (right not in noGoList):
+            coordsDict[right] = 'right'
+        if(self.get(left) != None) and (left not in noGoList):
+            coordsDict[left] = 'left'
+        if(self.get(down) != None) and (down not in noGoList):
+            coordsDict[down] = 'down'
+        if(self.get(up) != None) and (up not in noGoList):
+            coordsDict[up] = 'up'
+        return(coordsDict)
+    
     def getOrthogonalFromList(self, coordsList, noGoList=[]):
         orthCoords = []
         for coord in coordsList:
@@ -73,7 +93,7 @@ class Grid(object):
         self.set(coord, newVal)
         return(newVal)
 
-    def getMaxSnakeMove(self):
+    def getPerimeter(self):
         """
         This is the theoretical maximum number of moves that it could take to
         get to a location (all the way around the outside perimeter). Using this
