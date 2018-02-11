@@ -295,27 +295,36 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
     # Useful runtime stats
     print("moveDict={}, rank={}".format(moveDict, preferredMoveListRanked))
     
-    # Priority #1 -- don't paint yourself into a corner
-    
-    # Priority #2 -- stay healthy and try to be the biggest snake
+    # stay healthy, try to be biggest snake, eat smaller snakes
     if ourMove == None:
-        if (health < 75) or (largerThanUs > 0):
+        if health < 75:
+            # must maintain health, only go for food
             nearestFoodList = getNearestOfType([FOOD], symbolGrid, distanceGrid)
-            numFood = len(nearestFoodList)
-            #print("nearestFoodList={}".format(nearestFoodList))
-            if numFood == 0:
-                #print("No Food! Moving on...")
-                pass
-            elif numFood == 1:
-                ourMove = moveGrid.get(nearestFoodList[0])
-                print("Decision: Eat food at {}, distance={}, ourMove={}".format(nearestFoodList[0], distanceGrid.get(nearestFoodList[0]), moveGrid.get(nearestFoodList[0])))
-            else: # special case: more than one food at equal distance!
-                moveList = [moveGrid.get(coord) for coord in nearestFoodList]
-                for preferredmove in preferredMoveList:
-                    if preferredmove in moveList:
-                        ourMove = preferredmove
-                        break
-                print("Decision: Multiple Food: {}, distance={}, ourMove={}".format(nearestFoodList, distanceGrid.get(nearestFoodList[0]), ourMove))
+            decisionString = "Eat food"
+        elif largerThanUs == 0:
+            # we're big and well feed, now get the snakes!
+            nearestFoodList = getNearestOfType([EATABLE_HEAD_ZONE], symbolGrid, distanceGrid)
+            decisionString = "Eat snakes"
+        else:
+            # heath is good, snack on snakes while growing
+            nearestFoodList = getNearestOfType([FOOD, EATABLE_HEAD_ZONE], symbolGrid, distanceGrid)
+            decisionString = "Eat food and snakes"
+            
+        numFood = len(nearestFoodList)
+        #print("nearestFoodList={}".format(nearestFoodList))
+        if numFood == 0:
+            #print("No Food! Moving on...")
+            pass
+        elif numFood == 1:
+            ourMove = moveGrid.get(nearestFoodList[0])
+            print("Decision: {}: {}, distance={}, ourMove={}".format(decisionString, nearestFoodList[0], distanceGrid.get(nearestFoodList[0]), moveGrid.get(nearestFoodList[0])))
+        else: # special case: more than one food at equal distance!
+            moveList = [moveGrid.get(coord) for coord in nearestFoodList]
+            for preferredmove in preferredMoveList:
+                if preferredmove in moveList:
+                    ourMove = preferredmove
+                    break
+            print("Decision: {}: {}, distance={}, ourMove={}".format(decisionString, nearestFoodList, distanceGrid.get(nearestFoodList[0]), ourMove))
 
         # Safety check: how many spaces are we moving into.
         if ourMove != None:
@@ -323,34 +332,7 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
                 print("Safety override for move {}! snake length={}, spaces available={}".format(ourMove, mySnakeLength, moveDict[ourMove]))
                 ourMove = None
     
-    # Priority #3 -- eat smaller snakes!
-    if ourMove == None: # turn this off for less risky behaviour!
-        eatableSnakeHeadsList = getNearestOfType([EATABLE_HEAD_ZONE], symbolGrid, distanceGrid)
-        #print("eatableSnakeHeadsList={}".format(eatableSnakeHeadsList))
-        numHeads = len(eatableSnakeHeadsList)
-        if numHeads == 0:
-            #print("No Snakes! Moving on...")
-            pass
-        elif numHeads == 1:
-            ourMove = moveGrid.get(eatableSnakeHeadsList[0])
-            print("Decision: Eat head at {}, distance={}, ourMove={}".format(eatableSnakeHeadsList[0], distanceGrid.get(eatableSnakeHeadsList[0]), moveGrid.get(eatableSnakeHeadsList[0])))
-        else: # special case: more than one snake head at equal distance!
-            moveList = []
-            for coord in eatableSnakeHeadsList:
-                moveList.append(moveGrid.get(coord))
-            for preferredMove in preferredMoveList:
-                if preferredMove in moveList:
-                    ourMove = preferredMove
-                    break
-            print("Decision: Multiple heads: {}, distance={}, ourMove={}".format(eatableSnakeHeadsList, distanceGrid.get(eatableSnakeHeadsList[0]), ourMove))    
-    
-        # Safety check: how many spaces are we moving into.
-        if ourMove != None:
-            if moveDict[ourMove] < mySnakeLength:
-                print("Safety override for move {}! snake length={}, spaces available={}".format(ourMove, mySnakeLength, moveDict[ourMove]))
-                ourMove = None
-    
-    # Priority #4 -- chase tail!
+    # eating didn't work out - chase tail!
     if ourMove == None:
         myTailList = getNearestOfType([ME_TAIL], symbolGrid, distanceGrid)
         if len(myTailList) > 0:
@@ -358,6 +340,7 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
             ourMove = moveGrid.get(myTail)
             print("Decision: Chase tail at {}, distance={}, ourMove={}".format(myTail, distanceGrid.get(myTail), ourMove))
     
+    # Can't find tail - move wherever there is space
     # First check the moveDict to see if any direction shows available moves.
     # Go with whichever direction has the most coordinates marked.
     # Prefer current trajectory over random direction (testing this strategy)
