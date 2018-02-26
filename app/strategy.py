@@ -79,7 +79,7 @@ def executeStrategy(data):
     
     # Decide on a direction
     print("Health={}, Size={}, Trajectory={}, snakes larger than us={}".format(health, mySnakeLength, myTrajectory, largerThanUs))
-    ourMove = decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict)
+    ourMove, ourTaunt = decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict)
 
     if ourMove is None:
         print("Reassessing with maybe-go coordinates as OK")
@@ -95,14 +95,14 @@ def executeStrategy(data):
         moveDict['down'] = countOpenSpaces(data, symbolGrid, (ourHead[0], ourHead[1]+1), noGoCoordsList)
         #distanceGrid.printGrid(2)
         #moveGrid.printGrid(4)
-        ourMove = decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict)
+        ourMove, ourTaunt = decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict)
 
     if ourMove is None:
-        ourMove = panicDecisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict)
+        ourMove, ourTaunt = panicDecisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict)
         
     
-    print("Our move is {}".format(ourMove))
-    return(ourMove)
+    print("Our move is {}, our taunt is: {}".format(ourMove, ourTaunt))
+    return(ourMove, ourTaunt)
 
 
 def buildSymbolGrid(data):
@@ -283,10 +283,13 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
     - If none of the goals can be reached then see if any of our directions are
       in the "MAYBE_GO" list, if so, take it.
     - If there is no move available, then make a random choice and die.
+    
+    Returns the move and the taunt
     """
     mySnakeCoords = getOurSnakeCoords(data)
     mySnakeLength = len(mySnakeCoords)
     ourMove = None
+    ourTaunt = None
     health = getOurSnakeHealth(data)
     largerThanUs = snakesLargerThanUs(data)
     preferredMoveList = sorted(moveDict, key=moveDict.get, reverse=True)
@@ -304,7 +307,7 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
         elif largerThanUs == 0:
             # we're big and well feed, now get the snakes!
             nearestFoodList = getNearestOfType([EATABLE_HEAD_ZONE], symbolGrid, distanceGrid)
-            decisionString = "Eat snakes"
+            decisionString = "Chase snakes"
         else:
             # heath is good, snack on snakes while growing
             nearestFoodList = getNearestOfType([FOOD, EATABLE_HEAD_ZONE], symbolGrid, distanceGrid)
@@ -317,12 +320,14 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
             pass
         elif numFood == 1:
             ourMove = moveGrid.get(nearestFoodList[0])
+            ourTaunt = decisionString
             print("Decision: {}: {}, distance={}, ourMove={}".format(decisionString, nearestFoodList[0], distanceGrid.get(nearestFoodList[0]), moveGrid.get(nearestFoodList[0])))
         else: # special case: more than one food at equal distance!
             moveList = [moveGrid.get(coord) for coord in nearestFoodList]
             for preferredmove in preferredMoveList:
                 if preferredmove in moveList:
                     ourMove = preferredmove
+                    ourTaunt = decisionString
                     break
             print("Decision: {}: {}, distance={}, ourMove={}".format(decisionString, nearestFoodList, distanceGrid.get(nearestFoodList[0]), ourMove))
 
@@ -338,6 +343,7 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
         if len(myTailList) > 0:
             myTail = random.choice(myTailList)
             ourMove = moveGrid.get(myTail)
+            ourTaunt = "Chase tail"
             print("Decision: Chase tail at {}, distance={}, ourMove={}".format(myTail, distanceGrid.get(myTail), ourMove))
     
     # Can't find tail - move wherever there is space
@@ -349,14 +355,16 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
         # into.
         if moveDict[preferredMoveList[0]] >= mySnakeLength:
             ourMove = random.choice(preferredMoveListRanked[0])
+            ourTaunt = "Wander"
             print("Decision: go with majority (random). Spaces={}, move={}".format(moveDict[preferredMoveList[0]], ourMove))
 
-    return(ourMove)
+    return(ourMove, ourTaunt)
 
 
 def panicDecisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
     # Nothing within reach! Start to panic.
     ourMove = None
+    ourTaunt = None
     preferredMoveList = sorted(moveDict, key=moveDict.get, reverse=True)
     preferredMoveListRanked = getPreferredMoveListRanked(moveDict)
     
@@ -366,6 +374,7 @@ def panicDecisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
         # into.
         if moveDict[preferredMoveList[0]] > 0:
             ourMove = random.choice(preferredMoveListRanked[0])
+            ourTaunt = "Wander with concern"
             print("Decision: go with what's left (random). Spaces={}, move={}".format(moveDict[preferredMoveList[0]], ourMove))
 
     
@@ -383,6 +392,7 @@ def panicDecisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
         possibleDirections = [getTrajectory([coord, ourSnakeHead]) for coord in possibleCoordinates]
         if len(possibleDirections) > 0:
             ourMove = random.choice(possibleDirections)
+            ourTaunt = "Wander with concern"
             print("Decision: No good options. Resort to the Maybe-go list (random), move={}".format(ourMove))
     
     # Full panic, we're probably going to die. Keep on our trajectory, so we
@@ -391,9 +401,10 @@ def panicDecisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
         #directions = ['up', 'down', 'left', 'right']
         #ourMove = random.choice(directions)
         ourMove = getTrajectory(getOurSnakeCoords(data))
+        ourTaunt = "Uh oh"
         print("Descision: PANIC! No moves available! Going straight ahead: {}".format(ourMove))
 
-    return(ourMove)
+    return(ourMove, ourTaunt)
     
 
 def getNearestOfType(thingsToFindList, symbolGrid, distanceGrid):

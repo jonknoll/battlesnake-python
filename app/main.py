@@ -66,7 +66,7 @@ def start():
 
         # URL of the image to display as your avatar.
         'head_url': head_url,
-        'taunt': "No room for error", #'{} ({}x{})'.format(game_id, board_width, board_height),
+        'taunt': "Don't worry, you won't feel a thing",
         'head_type': 'smile',
         'tail_type': 'freckled',
         'secondary_color': '#ff00ff',
@@ -80,17 +80,12 @@ def move():
     
     data = move2018to2017(data)
 
-    ourMove = strategy.executeStrategy(data)
+    ourMove, ourTaunt = strategy.executeStrategy(data)
     return {
         'move': ourMove,
-        'taunt': ourMove
+        'taunt': ourTaunt
     }
 
-
-# Expose WSGI app (so gunicorn can find it)
-application = bottle.default_app()
-if __name__ == '__main__':
-    main()
 
 def main():
     print("RUNNING MAIN... STARTING BOTTLE...")
@@ -104,3 +99,9 @@ def main():
     
 #curl http://192.168.99.1:8080
 
+
+
+# Expose WSGI app (so gunicorn can find it)
+application = bottle.default_app()
+if __name__ == '__main__':
+    main()
