@@ -90,6 +90,9 @@ def move():
 # Expose WSGI app (so gunicorn can find it)
 application = bottle.default_app()
 if __name__ == '__main__':
+    main()
+
+def main():
     print("RUNNING MAIN... STARTING BOTTLE...")
     print(sys.version)
     # Using one of the allowed TCP ports in the McAfee firewall so it doesn't block traffic
