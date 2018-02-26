@@ -383,7 +383,6 @@ def panicDecisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
     # resort because moving into these positions are high risk (eg. moving
     # beside the head of a larger snake). But if no other choice, then a
     # maybe-go is better than a random fate.
-    # Prefer current trajectory over random direction (testing this strategy)
     if ourMove == None:
         ourSnakeHead = getHeadCoord(getOurSnakeCoords(data))
         orthogonalList = symbolGrid.getOrthogonal(ourSnakeHead)
