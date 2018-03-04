@@ -1,0 +1,24 @@
+Observations and notes from 2018
+
+- Won against a number of bounty snakes although was never able to beat Cory of the snakedown server (Accio)
+- Lost to Redbrick snake 3 times, 2 of which were identical eliminations: Leechy chased Redbrick snake into a tunnel along the wall and Redbrick snake closed the tunnel
+- Won the first prize in a draw with Giftbit (dinner with their dev team), presented on stage. That was a 2 on 2 games, where my snakes were the fastest elimination of their snakes that they had seen.
+- Leechy eliminated other snakes in round 1 of expert division but lost when it chased the other snake head and got cornered by its own body
+- Leechy was eliminated early in round 2 for the same reason
+- Most of the snakes were very conservative and just chased their tails (boring)
+- The announcers observed that my snake was interesting to watch
+- There were some cool things done with taunts, including a scrolling story and emojis
+- A few really fun animated gifs
+
+- Stop chasing snakes into tunnels! That's leechy's biggest weakness. If you can find a way to chase snakes but do it in a way that doesn't jeopordize personal safety then do it.
+- Maybe limit snake chasing to moments of opportunity
+- CrazyLeechy's algorithm ended up making him move in a switchback pattern when wandering. I think it was using the UP, LEFT, DOWN, RIGHT ordering of choices whenever it had to wander. Might want to experiment with that ordering again rather than choosing randomly from valid directions when wandering. LeechySnake often plowed right through its remaining squares when trapped. Not very efficient cause it chews through squares quickly.
+- Crazy leachy also had an interesting glitch where it would lose its tail immediately after eating (overlayed by body), and that would cause it to move in a weird direction for 1 turn while it wandered with the move ordering above.
+- Need to study Steve Barre's snake. It did extremely well on Snakedown. And he was able to win a match where almost every square was taken and the only move he could make was to chase his tail.
+- Some people eliminated the tails of snakes, making them valid spaces to move into. And the heads of smaller snakes.
+- There is a phenomenon where 2 snakes can be not on the same grid pattern. Two snakes facing each other with no space in between will crash neck to neck, not head to head (and guaranteed to die in that case).
+- Leechy often chased either 1 or 2 squares behind the head or right beside the head, until they both got to a wall and then went their own respective ways. Sometimes that action would put leechy into a dangourous position that he couldn't escape from. The other snake would get away and leechy would die. The strategy killed many snakes but many times at the cost of his own life.
+- The agressive eating of leechy generally was good at the start of the round because it ensured that he wouldn't get taken out by other snakes. However, later in the round when there are less snakes, maybe it would be better to cut down on the eating. The top snakedown snakes were not particularly long, but they knew how to trap.
+- It would be cool to get the snake to see where heads were and work to block them in, by moving to a wall and then turning around and moving back.
+- Need to do some work on how to respond when approaching an area with other snake heads. Particularly a confined space with other snake heads. That space will inevitably shrink. But the opposite is true if it contains snake tails (particularly its own). A confined space with a snake head and a snake tail will stay about the same size (or get slightly smaller when the tail's owner eats food). Many times leechy would move into an area with a snake head that would cut off his only escape. Consider some ranking system, where the effort/move count/cost goes up as you get closer to a snake head.
+- Maybe a barrier of 2 squares off the head of enemy snakes would discourage leechy from entering into confined areas with snake heads. Unfortunately that would not have prevented elimination in round one. The only way to ensure not getting trapped would be to buld a trajectory line from the other snake head with the thought "if this snake kept moving straight, would I get trapped by chasing it?" That might get hard to program, but it may avoid trouble.
