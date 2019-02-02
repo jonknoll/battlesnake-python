@@ -38,13 +38,13 @@ def ping():
     A keep-alive endpoint used to prevent cloud application platforms,
     such as Heroku, from sleeping the application instance.
     """
-    print("PING request")
+    print("\nPING request")
     return ping_response()
 
 @bottle.post('/start')
 def start():
-    print("START request")
     data = bottle.request.json
+    print("\nSTART request - {}".format(data["you"]["name"]))
 
     """
     TODO: If you intend to have a stateful snake AI,
@@ -58,13 +58,14 @@ def start():
     # https://developer.mozilla.org/en-US/docs/Web/CSS/color
     color = "#3F3F3F"
 
+    print("Name={}, Colour={}".format(data["you"]["name"], color))
     return start_response(color)
 
 
 @bottle.post('/move')
 def move():
-    print("MOVE request")
     data = bottle.request.json
+    print("\nMOVE request - Turn {} - {}".format(data["turn"], data["you"]["name"]))
 
     """
     TODO: Using the data from the endpoint request object, your
@@ -73,6 +74,7 @@ def move():
     #print(json.dumps(data))
 
     data = simplify(data)
+    #print("SIMPLE DICT={}".format(data))
 
     ourMove, ourTaunt = strategy.executeStrategy(data)
 
@@ -81,8 +83,8 @@ def move():
 
 @bottle.post('/end')
 def end():
-    print("END request")
     data = bottle.request.json
+    print("\nEND request - Turn {} - {}".format(data["turn"], data["you"]["name"]))
 
     """
     TODO: If your snake AI was stateful,

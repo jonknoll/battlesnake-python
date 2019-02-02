@@ -36,7 +36,7 @@ def executeStrategy(data):
     symbolGrid = buildSymbolGrid(data)
     symbolGrid.printGrid()
 
-    maxSnakeMove = symbolGrid.getPerimeter() 
+    maxSnakeMove = symbolGrid.getPerimeter()
     
     # Build grid that contains the number of moves that it would take to get
     # somewhere.
@@ -52,8 +52,11 @@ def executeStrategy(data):
     # disappear for one move when the snake eats food (2 tail coords so it gets
     # covered up by the body) so actually we should be ok.
     maybeGoCoordsList = symbolGrid.getListOfType([MAYBE_GO])
+    # need this for counting open spaces. Snake heads can close off spaces in
+    # a hurry!
+    cautionCoordsList = symbolGrid.getListOfType([EATABLE_HEAD_ZONE])
     # build grid using only safe moves
-    barrierCoordsList = noGoCoordsList + maybeGoCoordsList
+    barrierCoordsList = noGoCoordsList + maybeGoCoordsList + cautionCoordsList
     
     #print("NO GO COORDS={}".format(noGoCoordsList))
     #print("MAYBE GO COORDS={}".format(maybeGoCoordsList))
@@ -66,11 +69,12 @@ def executeStrategy(data):
     #moveGrid.printGrid(4)
     
     # build a dictionary of the number of open spaces available at each move
+    openSpaceCoordsList = barrierCoordsList
     moveDict = {}
-    moveDict['left'] = countOpenSpaces(data, symbolGrid, (ourHead[0]-1, ourHead[1]), barrierCoordsList)
-    moveDict['right'] = countOpenSpaces(data, symbolGrid, (ourHead[0]+1, ourHead[1]), barrierCoordsList)
-    moveDict['up'] = countOpenSpaces(data, symbolGrid, (ourHead[0], ourHead[1]-1), barrierCoordsList)
-    moveDict['down'] = countOpenSpaces(data, symbolGrid, (ourHead[0], ourHead[1]+1), barrierCoordsList)
+    moveDict['left'] = countOpenSpaces(data, symbolGrid, (ourHead[0]-1, ourHead[1]), openSpaceCoordsList)
+    moveDict['right'] = countOpenSpaces(data, symbolGrid, (ourHead[0]+1, ourHead[1]), openSpaceCoordsList)
+    moveDict['up'] = countOpenSpaces(data, symbolGrid, (ourHead[0], ourHead[1]-1), openSpaceCoordsList)
+    moveDict['down'] = countOpenSpaces(data, symbolGrid, (ourHead[0], ourHead[1]+1), openSpaceCoordsList)
     
     # Print grids for debugging
     #distanceGrid.printGrid(2)
@@ -147,8 +151,8 @@ def buildSymbolGrid(data):
 
     # Area around Non-eatable Snake Heads (risky: maybe-go)
     for snake in data['snakes']:
-        if(snake['id'] != myId):
-            if(len(snake["body"]) >= len(mySnakeObj["body"])):
+        if snake['id'] != myId:
+            if len(snake["body"]) >= len(mySnakeObj["body"]):
                 # Bigger snake
                 # put a danger zone around the head of larger snake
                 orthList = grid.getOrthogonal(snake["body"][0])
@@ -276,7 +280,7 @@ def countOpenSpaces(data, symbolGrid, startingCoord, noGoCoords):
 def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
     """
     Decisions for Snake:
-    - Goals are: Food, Heads of smaller snakes, Chase our own tail
+    - Goals are: Self Preservation, Food, Heads of smaller snakes, Chase our own tail
     - The direction is determined by whatever is the top goal for this round
     - The top priority is food if below the health threshold
     - The second priority is go for heads of smaller snakes
@@ -306,7 +310,7 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
             nearestFoodList = getNearestOfType([FOOD], symbolGrid, distanceGrid)
             decisionString = "Eat food"
         elif largerThanUs == 0:
-            # we're big and well feed, now get the snakes!
+            # we're big and well fed, now get the snakes!
             nearestFoodList = getNearestOfType([EATABLE_HEAD_ZONE], symbolGrid, distanceGrid)
             decisionString = "Chase snakes"
         else:
@@ -346,6 +350,14 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
             ourMove = moveGrid.get(myTail)
             ourTaunt = "Chase tail"
             print("Decision: Chase tail at {}, distance={}, ourMove={}".format(myTail, distanceGrid.get(myTail), ourMove))
+            
+        # Safety check: how many spaces are we moving into.
+        # EXPERIMENTAL: If moving toward tail, we should always have a space
+        # available. But it depends on how close we are to our tail!
+        #if ourMove != None:
+        #    if moveDict[ourMove] < mySnakeLength:
+        #        print("Safety override for move {}! snake length={}, spaces available={}".format(ourMove, mySnakeLength, moveDict[ourMove]))
+        #        ourMove = None
     
     # Can't find tail - move wherever there is space
     # First check the moveDict to see if any direction shows available moves.

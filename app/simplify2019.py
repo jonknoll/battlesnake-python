@@ -84,7 +84,6 @@ def simplify(data):
         if key == "you":
             simpleDict["you"] = val["id"]
 
-    print("SIMPLE DICT={}".format(simpleDict))
     return(simpleDict)
 
 
