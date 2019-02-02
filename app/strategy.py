@@ -1,6 +1,6 @@
 import random
-from app.grid import Grid
-from app.snakestuff import *
+from .grid import Grid
+from .snakestuff import *
 
 # Values to put in grid, priorities TBD
 OPEN_SPACE = '.'
@@ -129,28 +129,29 @@ def buildSymbolGrid(data):
     # Area around Eatable Snake Heads (safe)
     for snake in data['snakes']:
         if(snake['id'] != myId):
-            if(len(snake['coords']) < len(mySnakeObj['coords'])):
+            if(len(snake["body"]) < len(mySnakeObj["body"])):
                 # snake is shorter than us. Positions around the head are
                 # the goal, not the head itself, as the snake's head will not
                 # be there on the next move.
-                orthList = grid.getOrthogonal(snake['coords'][0])
+                orthList = grid.getOrthogonal(snake["body"][0])
                 grid.setList(orthList, EATABLE_HEAD_ZONE)
 
     # Special case when the tail is hidden by the body (2 tail coordinates)
     # immediately after eating food. So in that case, put tail markers around
     # where the tail would be (can't mark the tail because it's not going to
     # move for 1 turn.
-    if mySnakeObj['coords'][-1] == mySnakeObj['coords'][-2]:
-        orthList = grid.getOrthogonal(mySnakeObj['coords'][-1])
-        grid.setList(orthList, ME_TAIL)
+    if len(mySnakeObj["body"]) > 1:
+        if mySnakeObj["body"][-1] == mySnakeObj["body"][-2]:
+            orthList = grid.getOrthogonal(mySnakeObj["body"][-1])
+            grid.setList(orthList, ME_TAIL)
 
     # Area around Non-eatable Snake Heads (risky: maybe-go)
     for snake in data['snakes']:
         if(snake['id'] != myId):
-            if(len(snake['coords']) >= len(mySnakeObj['coords'])):
+            if(len(snake["body"]) >= len(mySnakeObj["body"])):
                 # Bigger snake
                 # put a danger zone around the head of larger snake
-                orthList = grid.getOrthogonal(snake['coords'][0])
+                orthList = grid.getOrthogonal(snake["body"][0])
                 grid.setList(orthList, MAYBE_GO)
 
     # Snake heads and bodies (deadly: no-go) and tails (risky: maybe-go)
@@ -162,15 +163,15 @@ def buildSymbolGrid(data):
             # temporarily hidden by the body which gets overlayed after the
             # tail has been placed. This is actually what we want so we don't
             # choose the tail spot after a snake has eaten something.
-            grid.set(snake['coords'][-1], ME_TAIL)
-            grid.setList(snake['coords'][1:-1], ME_SNAKE)
-            grid.set(snake['coords'][0], ME_HEAD)
-            #print("me snake coords={}".format(snake['coords']))
+            grid.set(snake["body"][-1], ME_TAIL)
+            grid.setList(snake["body"][1:-1], ME_SNAKE)
+            grid.set(snake["body"][0], ME_HEAD)
+            #print("me snake coords={}".format(snake["body"]))
         else:
-            grid.set(snake['coords'][-1], MAYBE_GO)
-            grid.setList(snake['coords'][1:-1], OTHER_BODY)
-            grid.set(snake['coords'][0], OTHER_HEAD)
-            #print("snake coords={}".format(snake['coords']))
+            grid.set(snake["body"][-1], MAYBE_GO)
+            grid.setList(snake["body"][1:-1], OTHER_BODY)
+            grid.set(snake["body"][0], OTHER_HEAD)
+            #print("snake coords={}".format(snake["body"]))
     
     # Strategy from watching snakes engage in risky behaviour:         
     # Plot areas where a snake head is one space over from a wall or another

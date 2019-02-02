@@ -9,10 +9,14 @@ def getMySnakeObj(data):
             return(snake)
         
 def getOurSnakeCoords(data):
+    """
+    pass in global data object
+    return a list of (x,y) tuples
+    """
     myId = data['you']
     for snake in data['snakes']:
         if(snake['id'] == myId):
-            return(snake['coords'])
+            return(snake['body'])
 
 def getHeadCoord(snakeCoordsList):
     return(snakeCoordsList[0])
@@ -21,17 +25,19 @@ def getTailCoord(snakeCoordsList):
     return(snakeCoordsList[-1])
 
 def getOurSnakeHealth(data):
-    return(getMySnakeObj(data)['health_points'])
+    return(getMySnakeObj(data)["health"])
 
 def getOtherSnakeCoordsList(data):
     myId = data['you']
     snakeList = []
-    for snake in data['snakes']:
+    for snake in data["snakes"]:
         if(snake['id'] != myId):
-            snakeList.append(snake['coords'])
+            snakeList.append(snake["body"])
     return(snakeList)
 
 def getTrajectory(snakeCoordsList):
+    if len(snakeCoordsList) < 2:
+        return('up')
     xh = snakeCoordsList[0][0]
     yh = snakeCoordsList[0][1]
     x1 = snakeCoordsList[1][0]
@@ -46,8 +52,8 @@ def getTrajectory(snakeCoordsList):
         return('up')
 
 def compareSnake(snakeA, snakeB):
-    lenA = len(snakeA['coords'])
-    lenB = len(snakeB['coords'])
+    lenA = len(snakeA['body'])
+    lenB = len(snakeB['body'])
     if lenA > lenB:
         return(">")
     elif lenA < lenB:
