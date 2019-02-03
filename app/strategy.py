@@ -56,7 +56,7 @@ def executeStrategy(data):
     # a hurry!
     cautionCoordsList = symbolGrid.getListOfType([EATABLE_HEAD_ZONE])
     # build grid using only safe moves
-    barrierCoordsList = noGoCoordsList + maybeGoCoordsList + cautionCoordsList
+    barrierCoordsList = noGoCoordsList + maybeGoCoordsList
     
     #print("NO GO COORDS={}".format(noGoCoordsList))
     #print("MAYBE GO COORDS={}".format(maybeGoCoordsList))
@@ -69,7 +69,7 @@ def executeStrategy(data):
     #moveGrid.printGrid(4)
     
     # build a dictionary of the number of open spaces available at each move
-    openSpaceCoordsList = barrierCoordsList
+    openSpaceCoordsList = barrierCoordsList + cautionCoordsList
     moveDict = {}
     moveDict['left'] = countOpenSpaces(data, symbolGrid, (ourHead[0]-1, ourHead[1]), openSpaceCoordsList)
     moveDict['right'] = countOpenSpaces(data, symbolGrid, (ourHead[0]+1, ourHead[1]), openSpaceCoordsList)
@@ -179,10 +179,13 @@ def buildSymbolGrid(data):
     
     # Strategy from watching snakes engage in risky behaviour:         
     # Plot areas where a snake head is one space over from a wall or another
-    # snake. This is a high risk area since the snake is making a tunne and
+    # snake. This is a high risk area since the snake is making a tunnel and
     # could suddenly turn and close the area off. Better to mark as maybe-go
     # to avoid entering a high risk area.
-    noGoList = [None, ME_SNAKE, OTHER_HEAD, OTHER_BODY, MAYBE_GO]
+    # Me Tail is in the list because the MAYBE_GO can overwrite our tail marker
+    # which causes our snake to lose sight of it's tail and make bad decisions
+    # in tight situations.
+    noGoList = [None, ME_SNAKE, ME_TAIL, OTHER_HEAD, OTHER_BODY, MAYBE_GO]
     for head in grid.getListOfType([OTHER_HEAD]):
         # left
         if grid.get((head[0]-1, head[1])) not in noGoList and grid.get((head[0]-2, head[1])) in noGoList:
@@ -319,7 +322,7 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
             decisionString = "Eat food and snakes"
             
         numFood = len(nearestFoodList)
-        #print("nearestFoodList={}".format(nearestFoodList))
+        #print("decision so far={}, nearestFoodList={}".format(decisionString, nearestFoodList))
         if numFood == 0:
             #print("No Food! Moving on...")
             pass
