@@ -60,9 +60,9 @@ def start():
     # https://developer.mozilla.org/en-US/docs/Web/CSS/color
 
     if data["you"]["name"].lower().startswith("schnake"):
-        color = "#00FF00"
+        color = "#009E4D"
     else:
-        color = "#00A000"
+        color = "#00FF00"
     
     print("Name={}, Colour={}".format(data["you"]["name"], color))
     return start_response(color)
