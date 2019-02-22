@@ -27,13 +27,18 @@ def getTailCoord(snakeCoordsList):
 def getOurSnakeHealth(data):
     return(getMySnakeObj(data)["health"])
 
-def getOtherSnakeCoordsList(data):
+def getOtherSnakeList(data):
     myId = data['you']
     snakeList = []
     for snake in data["snakes"]:
         if(snake['id'] != myId):
-            snakeList.append(snake["body"])
+            snakeList.append(snake)
     return(snakeList)
+
+def getMyName(data):
+    for snake in data["snakes"]:
+        if data["you"] == snake["id"]:
+            return snake["name"]
 
 def getTrajectory(snakeCoordsList):
     if len(snakeCoordsList) < 2:
@@ -63,10 +68,11 @@ def compareSnake(snakeA, snakeB):
     
 def snakesLargerThanUs(data):
     ourSnake = getOurSnakeCoords(data)
-    otherSnakesList = getOtherSnakeCoordsList(data)
+    otherSnakesList = getOtherSnakeList(data)
+    myName = getMyName(data)
     largerSnakes = 0
-    for otherSnake in otherSnakesList:
-        if len(ourSnake) <= len(otherSnake):
+    for snake in otherSnakesList:
+        if len(ourSnake) <= len(snake["body"]) and snake["name"][:7].lower() != myName[:7].lower():
             largerSnakes += 1
     return(largerSnakes)
     

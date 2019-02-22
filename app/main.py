@@ -45,8 +45,8 @@ def ping():
 
 @bottle.post('/start')
 def start():
-    print("START request")
     data = bottle.request.json
+    print("\nSTART request - {}".format(data["you"]["name"]))
 
     """
     TODO: If you intend to have a stateful snake AI,
@@ -58,15 +58,20 @@ def start():
     # What color your snake should be on the board.
     # Accepts any valid CSS color.
     # https://developer.mozilla.org/en-US/docs/Web/CSS/color
-    color = "#3F3F3F"
 
+    if data["you"]["name"].lower().startswith("schnake"):
+        color = "#00FF00"
+    else:
+        color = "#00A000"
+    
+    print("Name={}, Colour={}".format(data["you"]["name"], color))
     return start_response(color)
 
 
 @bottle.post('/move')
 def move():
-    print("MOVE request")
     data = bottle.request.json
+    print("\nMOVE request - Turn {} - {}".format(data["turn"], data["you"]["name"]))
 
     """
     TODO: Using the data from the endpoint request object, your

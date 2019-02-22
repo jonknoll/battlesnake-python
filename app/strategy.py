@@ -31,6 +31,7 @@ def executeStrategy(data):
     myTrajectory = getTrajectory(mySnakeCoords)
     health = getOurSnakeHealth(data)
     largerThanUs = snakesLargerThanUs(data)
+    myName = getMyName(data)
 
     # Build Grid with symbols for different things
     symbolGrid = buildSymbolGrid(data)
@@ -78,7 +79,7 @@ def executeStrategy(data):
     
     
     # Decide on a direction
-    print("Health={}, Size={}, Trajectory={}, snakes larger than us={}".format(health, mySnakeLength, myTrajectory, largerThanUs))
+    print("{}: Health={}, Size={}, Trajectory={}, snakes larger than us={}".format(myName, health, mySnakeLength, myTrajectory, largerThanUs))
     ourMove, ourTaunt = decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict)
 
     if ourMove is None:
@@ -147,8 +148,9 @@ def buildSymbolGrid(data):
 
     # Area around Non-eatable Snake Heads (risky: maybe-go)
     for snake in data['snakes']:
-        if(snake['id'] != myId):
-            if(len(snake["body"]) >= len(mySnakeObj["body"])):
+        if snake['id'] != myId:
+            myName = getMyName(data)
+            if len(snake["body"]) >= len(mySnakeObj["body"]) or snake["name"][:7].lower() == myName[:7].lower():
                 # Bigger snake
                 # put a danger zone around the head of larger snake
                 orthList = grid.getOrthogonal(snake["body"][0])
