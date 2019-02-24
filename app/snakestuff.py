@@ -26,6 +26,8 @@ def getOtherSnakeCoordsList(data):
     return(snakeList)
 
 def getTrajectory(snakeCoordsList):
+    if len(snakeCoordsList) < 2:
+        return('up')
     xh = snakeCoordsList[0][0]
     yh = snakeCoordsList[0][1]
     x1 = snakeCoordsList[1][0]

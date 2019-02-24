@@ -4,3 +4,7 @@ battlesnake
 .idea
 .project
 .pydevproject
+
+app/bs
+.gitignore
+/app/scenarios.py

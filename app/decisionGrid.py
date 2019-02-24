@@ -1,6 +1,6 @@
-from gridhelper import *
+from .gridhelper import *
 import random
-import gridhelper
+from . import gridhelper
 
 """
 EAT_THIS_HEAD <- this is a vulnerable head go into danger zones

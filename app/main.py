@@ -1,11 +1,17 @@
 import bottle
 import os
 import random
-from grid import Grid
-from gridhelper import *
-from snakestuff import *
-from taunt import *
-from decisionGrid import *
+import sys
+from .grid import Grid
+from .gridhelper import *
+from .snakestuff import *
+from .taunt import *
+from .decisionGrid import *
+
+from cheroot import wsgi
+from .convert2019_2017 import convert
+
+from .api import ping_response, start_response, move_response, end_response
 
 #Auto Deployed at http://jerksnake.herokuapp.com
 
@@ -156,25 +162,38 @@ def safetyCheck(grid, coord):
 # WEB CALLS
 #############################################
 
+@bottle.route('/')
+def index():
+    return '''
+    Battlesnake documentation can be found at
+       <a href="https://docs.battlesnake.io">https://docs.battlesnake.io</a>.
+    '''
 
 @bottle.route('/static/<path:path>')
 def static(path):
     return bottle.static_file(path, root='static/')
 
+@bottle.post('/ping')
+def ping():
+    """
+    A keep-alive endpoint used to prevent cloud application platforms,
+    such as Heroku, from sleeping the application instance.
+    """
+    print("\nPING request")
+    return ping_response()
 
 @bottle.post('/start')
 def start():
     data = bottle.request.json
-
     print("\nSNAKE START!")
-    for k,v in data.iteritems():
+    for k,v in data.items():
         print("{}={}".format(k,v))
     print("SNAKE INFO:")
 
 
-    game_id = data['game_id']
-    board_width = data['width']
-    board_height = data['height']
+    game_id = data['game']
+    board_width = data["board"]['width']
+    board_height = data["board"]['height']
 
     head_url = '%s://%s/static/jerk.png' % (
         bottle.request.urlparts.scheme,
@@ -183,17 +202,20 @@ def start():
 
     # TODO: Do things with data
 
-    return {
-        'color': nastyColour(),
-        'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
-        'head_url': head_url,
-        'name': 'JerkSnake'
-    }
+    #return {
+    #    'color': nastyColour(),
+    #    'taunt': '{} ({}x{})'.format(game_id, board_width, board_height),
+    #    'head_url': head_url,
+    #    'name': 'JerkSnake'
+    #}
+    return start_response(nastyColour())
 
 
 @bottle.post('/move')
 def move():
     data = bottle.request.json
+    data = convert(data)
+
     grid = build_grid(data)
     ourSnakeObj = getMySnakeObj(data)
     ourSnake = getOurSnakeCoords(data)
@@ -279,13 +301,54 @@ def move():
     print("Our move is = {}".format(ourMove))
 
 
-    return {
-        'move': ourMove,
-        'taunt': 'battlesnake-python!'
-    }
+    #return {
+    #    'move': ourMove,
+    #    'taunt': 'battlesnake-python!'
+    #}
+    return move_response(ourMove)
 
 
-# Expose WSGI app (so gunicorn can find it)
-application = bottle.default_app()
+@bottle.post('/end')
+def end():
+    data = bottle.request.json
+    print("\nEND request - Turn {} - {}".format(data["turn"], data["you"]["name"]))
+
+    """
+    TODO: If your snake AI was stateful,
+        clean up any stateful objects here.
+    """
+    #print(json.dumps(data))
+
+    return end_response()
+
+
+class CherryPyServer(bottle.ServerAdapter):
+    def run(self, handler):
+        server = wsgi.Server((self.host, self.port), handler)
+        
+        try:
+            server.start()
+        finally:
+            server.stop()
+
+
+def main():
+    print("RUNNING MAIN... STARTING BOTTLE...")
+    print(sys.version)
+    # Using one of the allowed TCP ports in the McAfee firewall so it doesn't block traffic
+    # As of Feb 2018 we can use: 20-21, 111, 502, 4987, 4988-4989, 5500-5509,
+    # 6001-6002, 8282, 13777
+    # ALSO: make sure the URL you give the server doesn't have a trailing slash!
+    application = bottle.default_app()
+    bottle.run(
+        application,
+        host=os.getenv('IP', '0.0.0.0'),
+        port=os.getenv('PORT', '8181'),
+        debug=os.getenv('DEBUG', True),
+        server=CherryPyServer
+        )
+    
+
+
 if __name__ == '__main__':
-    bottle.run(application, host=os.getenv('IP', '0.0.0.0'), port=os.getenv('PORT', '8080'))
+    main()
