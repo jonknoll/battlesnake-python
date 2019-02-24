@@ -4,6 +4,8 @@ import random
 import bottle
 import sys
 
+from cheroot import wsgi
+
 from . import strategy
 from .simplify2019 import simplify
 
@@ -94,6 +96,17 @@ def end():
 
     return end_response()
 
+
+class CherryPyServer(bottle.ServerAdapter):
+    def run(self, handler):
+        server = wsgi.Server((self.host, self.port), handler)
+        
+        try:
+            server.start()
+        finally:
+            server.stop()
+
+
 def main():
     print("RUNNING MAIN... STARTING BOTTLE...")
     print(sys.version)
@@ -101,19 +114,16 @@ def main():
     # As of Feb 2018 we can use: 20-21, 111, 502, 4987, 4988-4989, 5500-5509,
     # 6001-6002, 8282, 13777
     # ALSO: make sure the URL you give the server doesn't have a trailing slash!
+    application = bottle.default_app()
     bottle.run(
         application,
         host=os.getenv('IP', '0.0.0.0'),
         port=os.getenv('PORT', '8080'),
-        debug=os.getenv('DEBUG', True))
-    #strategy.executeStrategy(move2018to2017(test8))
+        debug=os.getenv('DEBUG', True),
+        server=CherryPyServer
+        )
     
 #curl http://192.168.99.1:8080
-
-
-
-# Expose WSGI app (so gunicorn can find it)
-application = bottle.default_app()
 
 if __name__ == '__main__':
     main()
