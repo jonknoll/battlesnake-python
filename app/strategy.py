@@ -5,12 +5,14 @@ from .snakestuff import *
 # Values to put in grid, priorities TBD
 OPEN_SPACE = '.'
 FOOD = 'F'
-ME_HEAD = '@'
-ME_SNAKE = '#'
-ME_TAIL = '~'
-EATABLE_HEAD_ZONE = 'H'
-OTHER_HEAD = 'O'
-OTHER_BODY = 'o'
+ME_HEAD = 'H'
+ME_BODY = 'B'
+ME_TAIL = 'T'
+EATABLE_HEAD_ZONE = 'e'
+VERY_EATABLE_HEAD = 'E'
+OTHER_HEAD = 'h'
+OTHER_BODY = 'b'
+OTHER_TAIL = 't'
 MAYBE_GO = '+'
 #EAT_THIS_HEAD = '$'
 #ORTHOGONAL_HEAD = '+'
@@ -46,7 +48,7 @@ def executeStrategy(data):
     moveGrid = Grid(width, height, None)
     
     # Get lists of stuff on the board
-    noGoCoordsList = symbolGrid.getListOfType([ME_HEAD, ME_SNAKE, OTHER_HEAD, OTHER_BODY])
+    noGoCoordsList = symbolGrid.getListOfType([ME_HEAD, ME_BODY, OTHER_HEAD, OTHER_BODY])
     # Note: You would expect ME_TAIL to be in the maybeGoCoordsList, but then
     # it doesn't get a distance associated with it. However the tail will
     # disappear for one move when the snake eats food (2 tail coords so it gets
@@ -139,6 +141,11 @@ def buildSymbolGrid(data):
                 # be there on the next move.
                 orthList = grid.getOrthogonal(snake["body"][0])
                 grid.setList(orthList, EATABLE_HEAD_ZONE)
+                # special case if the eatable head is in range on our next move
+                myOrthList = grid.getOrthogonal(mySnakeObj["body"][0])
+                for i in orthList:
+                    if i in myOrthList:
+                        grid.set(i, VERY_EATABLE_HEAD)
 
     # Special case when the tail is hidden by the body (2 tail coordinates)
     # immediately after eating food. So in that case, put tail markers around
@@ -148,15 +155,6 @@ def buildSymbolGrid(data):
         if mySnakeObj["body"][-1] == mySnakeObj["body"][-2]:
             orthList = grid.getOrthogonal(mySnakeObj["body"][-1])
             grid.setList(orthList, ME_TAIL)
-
-    # Area around Non-eatable Snake Heads (risky: maybe-go)
-    for snake in data['snakes']:
-        if snake['id'] != myId:
-            if len(snake["body"]) >= len(mySnakeObj["body"]):
-                # Bigger snake
-                # put a danger zone around the head of larger snake
-                orthList = grid.getOrthogonal(snake["body"][0])
-                grid.setList(orthList, MAYBE_GO)
 
     # Snake heads and bodies (deadly: no-go) and tails (risky: maybe-go)
     # Must lay down after everything else, so it doesn't get overwritten
@@ -168,14 +166,24 @@ def buildSymbolGrid(data):
             # tail has been placed. This is actually what we want so we don't
             # choose the tail spot after a snake has eaten something.
             grid.set(snake["body"][-1], ME_TAIL)
-            grid.setList(snake["body"][1:-1], ME_SNAKE)
+            grid.setList(snake["body"][1:-1], ME_BODY)
             grid.set(snake["body"][0], ME_HEAD)
             #print("me snake coords={}".format(snake["body"]))
         else:
-            grid.set(snake["body"][-1], MAYBE_GO)
+            grid.set(snake["body"][-1], OTHER_TAIL)
             grid.setList(snake["body"][1:-1], OTHER_BODY)
             grid.set(snake["body"][0], OTHER_HEAD)
             #print("snake coords={}".format(snake["body"]))
+            
+    # Area around Non-eatable Snake Heads (risky: maybe-go)
+    dontOverwriteList = [None, ME_BODY, ME_HEAD, OTHER_BODY, OTHER_HEAD]
+    for snake in data['snakes']:
+        if snake['id'] != myId:
+            if len(snake["body"]) >= len(mySnakeObj["body"]):
+                # Bigger snake
+                # put a danger zone around the head of larger snake
+                orthList = grid.getOrthogonal(snake["body"][0])
+                grid.setList(orthList, MAYBE_GO, dontOverwriteList)
     
     # Strategy from watching snakes engage in risky behaviour:         
     # Plot areas where a snake head is one space over from a wall or another
@@ -185,7 +193,7 @@ def buildSymbolGrid(data):
     # Me Tail is in the list because the MAYBE_GO can overwrite our tail marker
     # which causes our snake to lose sight of it's tail and make bad decisions
     # in tight situations.
-    noGoList = [None, ME_SNAKE, ME_TAIL, OTHER_HEAD, OTHER_BODY, MAYBE_GO]
+    noGoList = [None, ME_BODY, ME_TAIL, OTHER_HEAD, OTHER_BODY, MAYBE_GO]
     for head in grid.getListOfType([OTHER_HEAD]):
         # left
         if grid.get((head[0]-1, head[1])) not in noGoList and grid.get((head[0]-2, head[1])) in noGoList:
@@ -314,11 +322,11 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
             decisionString = "Eat food"
         elif largerThanUs == 0:
             # we're big and well fed, now get the snakes!
-            nearestFoodList = getNearestOfType([EATABLE_HEAD_ZONE], symbolGrid, distanceGrid)
+            nearestFoodList = getNearestOfType([EATABLE_HEAD_ZONE, VERY_EATABLE_HEAD], symbolGrid, distanceGrid)
             decisionString = "Chase snakes"
         else:
             # heath is good, snack on snakes while growing
-            nearestFoodList = getNearestOfType([FOOD, EATABLE_HEAD_ZONE], symbolGrid, distanceGrid)
+            nearestFoodList = getNearestOfType([FOOD, EATABLE_HEAD_ZONE, VERY_EATABLE_HEAD], symbolGrid, distanceGrid)
             decisionString = "Eat food and snakes"
             
         numFood = len(nearestFoodList)
@@ -357,10 +365,10 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
         # Safety check: how many spaces are we moving into.
         # EXPERIMENTAL: If moving toward tail, we should always have a space
         # available. But it depends on how close we are to our tail!
-        #if ourMove != None:
-        #    if moveDict[ourMove] < mySnakeLength:
-        #        print("Safety override for move {}! snake length={}, spaces available={}".format(ourMove, mySnakeLength, moveDict[ourMove]))
-        #        ourMove = None
+        if ourMove != None:
+            if moveDict[ourMove] < mySnakeLength:
+                print("Safety override for move {}! snake length={}, spaces available={}".format(ourMove, mySnakeLength, moveDict[ourMove]))
+                ourMove = None
     
     # Can't find tail - move wherever there is space
     # First check the moveDict to see if any direction shows available moves.

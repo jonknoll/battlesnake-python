@@ -15,9 +15,11 @@ class Grid(object):
             return(None)
         return self.grid[coord[1]][coord[0]]
     
-    def setList(self, coordsList, val):
+    def setList(self, coordsList, val, dontOverwriteList=[]):
         for coord in coordsList:
-            self.set(coord, val)
+            currentVal = self.get(coord)
+            if currentVal not in dontOverwriteList:
+                self.set(coord, val)
     
     def getListOfType(self, typeList):
         coordsList = []

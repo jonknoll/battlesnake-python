@@ -3,6 +3,7 @@ import os
 import random
 import bottle
 import sys
+import time
 
 from cheroot import wsgi
 
@@ -79,8 +80,11 @@ def move():
 
     data = simplify(data)
     #print("SIMPLE DICT={}".format(data))
-
+    start = time.time()
     ourMove, ourTaunt = strategy.executeStrategy(data)
+    end = time.time()
+    ms = (end-start) * 1000
+    print("execution time={:.6}ms".format(ms))
 
     return move_response(ourMove)
 
