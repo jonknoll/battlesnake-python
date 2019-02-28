@@ -6,18 +6,16 @@ def ping_response():
         status=200
     )
 
-def start_response(color):
-    assert type(color) is str, \
-        "Color value must be string"
+def start_response(responseDict):
+    #assert type(color) is str, \
+    #    "Color value must be string"
 
     return HTTPResponse(
         status=200,
         headers={
             "Content-Type": "application/json"
         },
-        body=json.dumps({
-            "color": color
-        })
+        body=json.dumps(responseDict)
     )
 
 def move_response(move):
