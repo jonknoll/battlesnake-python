@@ -36,14 +36,14 @@ class Grid(object):
         left = (coord[0]-1, coord[1])
         down = (coord[0], coord[1]+1)
         up = (coord[0], coord[1]-1)
-        if(self.get(right) != None) and (right not in noGoList):
-            coordsList.append(right)
         if(self.get(left) != None) and (left not in noGoList):
             coordsList.append(left)
-        if(self.get(down) != None) and (down not in noGoList):
-            coordsList.append(down)
         if(self.get(up) != None) and (up not in noGoList):
             coordsList.append(up)
+        if(self.get(right) != None) and (right not in noGoList):
+            coordsList.append(right)
+        if(self.get(down) != None) and (down not in noGoList):
+            coordsList.append(down)
         return(coordsList)
     
     def getOrthogonalDict(self, coord, noGoList=[]):
@@ -56,14 +56,14 @@ class Grid(object):
         left = (coord[0]-1, coord[1])
         down = (coord[0], coord[1]+1)
         up = (coord[0], coord[1]-1)
-        if(self.get(right) != None) and (right not in noGoList):
-            coordsDict[right] = 'right'
         if(self.get(left) != None) and (left not in noGoList):
             coordsDict[left] = 'left'
-        if(self.get(down) != None) and (down not in noGoList):
-            coordsDict[down] = 'down'
         if(self.get(up) != None) and (up not in noGoList):
             coordsDict[up] = 'up'
+        if(self.get(right) != None) and (right not in noGoList):
+            coordsDict[right] = 'right'
+        if(self.get(down) != None) and (down not in noGoList):
+            coordsDict[down] = 'down'
         return(coordsDict)
     
     def getOrthogonalFromList(self, coordsList, noGoList=[]):

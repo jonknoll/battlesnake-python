@@ -74,8 +74,8 @@ def executeStrategy(data):
     openSpaceCoordsList = barrierCoordsList + cautionCoordsList
     moveDict = {}
     moveDict['left'] = countOpenSpaces(data, symbolGrid, (ourHead[0]-1, ourHead[1]), openSpaceCoordsList)
-    moveDict['right'] = countOpenSpaces(data, symbolGrid, (ourHead[0]+1, ourHead[1]), openSpaceCoordsList)
     moveDict['up'] = countOpenSpaces(data, symbolGrid, (ourHead[0], ourHead[1]-1), openSpaceCoordsList)
+    moveDict['right'] = countOpenSpaces(data, symbolGrid, (ourHead[0]+1, ourHead[1]), openSpaceCoordsList)
     moveDict['down'] = countOpenSpaces(data, symbolGrid, (ourHead[0], ourHead[1]+1), openSpaceCoordsList)
     
     # Print grids for debugging
@@ -357,7 +357,8 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
     if ourMove == None:
         myTailList = getNearestOfType([ME_TAIL], symbolGrid, distanceGrid)
         if len(myTailList) > 0:
-            myTail = random.choice(myTailList)
+            #myTail = random.choice(myTailList)
+            myTail = myTailList[0]
             ourMove = moveGrid.get(myTail)
             ourTaunt = "Chase tail"
             print("Decision: Chase tail at {}, distance={}, ourMove={}".format(myTail, distanceGrid.get(myTail), ourMove))
@@ -378,9 +379,10 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
         # make sure the top rated direction has at least one position to move
         # into.
         if moveDict[preferredMoveList[0]] >= mySnakeLength:
-            ourMove = random.choice(preferredMoveListRanked[0])
+            #ourMove = random.choice(preferredMoveListRanked[0])
+            ourMove = preferredMoveListRanked[0][0]
             ourTaunt = "Wander"
-            print("Decision: go with majority (random). Spaces={}, move={}".format(moveDict[preferredMoveList[0]], ourMove))
+            print("Decision: go with majority (L,U,R,D). Spaces={}, move={}".format(moveDict[preferredMoveList[0]], ourMove))
 
     return(ourMove, ourTaunt)
 
@@ -397,9 +399,10 @@ def panicDecisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
         # make sure the top rated direction has at least one position to move
         # into.
         if moveDict[preferredMoveList[0]] > 0:
-            ourMove = random.choice(preferredMoveListRanked[0])
+            #ourMove = random.choice(preferredMoveListRanked[0])
+            ourMove = preferredMoveListRanked[0][0]
             ourTaunt = "Wander with concern"
-            print("Decision: go with what's left (random). Spaces={}, move={}".format(moveDict[preferredMoveList[0]], ourMove))
+            print("Decision: go with what's left (L,U,R,D). Spaces={}, move={}".format(moveDict[preferredMoveList[0]], ourMove))
 
     
     # If we get here, then we should be panicing.
@@ -414,9 +417,10 @@ def panicDecisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
         possibleCoordinates = [a for a in orthogonalList if a in maybeGoCoordsList]
         possibleDirections = [getTrajectory([coord, ourSnakeHead]) for coord in possibleCoordinates]
         if len(possibleDirections) > 0:
-            ourMove = random.choice(possibleDirections)
-            ourTaunt = "Wander with concern"
-            print("Decision: No good options. Resort to the Maybe-go list (random), move={}".format(ourMove))
+            #ourMove = random.choice(possibleDirections)
+            ourMove = possibleDirections[0]
+            ourTaunt = "Wander with more concern"
+            print("Decision: No good options. Resort to the Maybe-go list (L,U,R,D), move={}".format(ourMove))
     
     # Full panic, we're probably going to die. Keep on our trajectory, so we
     # at least don't turn in on ourself.
