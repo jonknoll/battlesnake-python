@@ -70,6 +70,10 @@ def start():
 @bottle.post('/move')
 def move():
     data = bottle.request.json
+    return doMove(data)
+    
+
+def doMove(data):
     print("\nMOVE request - Turn {} - {}".format(data["turn"], data["you"]["name"]))
 
     """
