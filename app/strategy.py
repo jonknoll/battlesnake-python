@@ -361,6 +361,16 @@ def decisionTree(data, symbolGrid, distanceGrid, moveGrid, moveDict):
             ourTaunt = "Wander"
             print("Decision: go with majority (random). Spaces={}, move={}".format(moveDict[preferredMoveList[0]], ourMove))
 
+    # OVERRIDE
+    # Die quickly if there are only 2 snakes and the other is named the same as us
+    if len(data['snakes']) == 2:
+        myId = data['you']
+        for snake in data['snakes']:
+            myName = getMyName(data)
+            if snake['id'] != myId and snake["name"][:7].lower() == myName[:7].lower():
+                ourMove = "down"
+                ourTaunt = "We need to die!"
+
     return(ourMove, ourTaunt)
 
 
