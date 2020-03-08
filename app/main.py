@@ -17,22 +17,7 @@ from .api import ping_response, start_response, move_response, end_response
 
 @bottle.route('/')
 def index():
-    return '''
-    Battlesnake documentation can be found at
-       <a href="https://docs.battlesnake.io">https://docs.battlesnake.io</a>.
-    '''
-
-@bottle.route('/static/<path:path>')
-def static(path):
-    """
-    Given a path, return the static file located relative
-    to the static folder.
-
-    This can be used to return the snake head URL in an API response.
-    """
-    print("STATIC request")
-    print("path={}".format(path))
-    return bottle.static_file(path, root='static/')
+    return "Your Battlesnake is alive!"
 
 @bottle.post('/ping')
 def ping():
